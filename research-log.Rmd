@@ -1,0 +1,95 @@
+---
+title: "Research log"
+author: "Dennis Scheper"
+date: "11-9-2020"
+output:
+  html_document:
+    df_print: paged
+  sansfont: Arial
+  pdf_document:
+    number_sections: yes
+---
+\fontfamily{arial}
+\fontsize{12}{15}
+\selectfont
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Week 1 - original dataset
+Date: 11 September, 2020 (week 1)
+
+## Introduction
+The article, "Impact of HbA1c Measurement on Hospital Readmission Rates: Analysis of 70,000 Clinical Database Patient Records", states that the management of hyperglycemia has a significant impact on the outcome and readmission rates of hospitalized patients. The authors based this conclusion on the comprehensive assessment of 70.000 diabetes patient records retrieved from 140 US hospitals. The results that depict the relationship between readmission rates and measurement of HbA1c levels, can aid in the enlargement of already existing diabetes tactics to reduce readmission rates further.
+
+## Dataset and Attributes Information
+All information used in this article comes from a database, consisting of 41 tables and totals 117 features, such as demographics (like gender, race and age), inpatient or outpatient, and (in-hospital) mortality. Data came from 130 hospitals in the USA over a ten-year period (1998-2008) and contains around 74 million unique visits by 18 million unique patients. This research used information that need to accede to the following specifications: 
+\begin{enumerate}
+  \item is a hospital admission; 
+  \item the encounter is a diagnosed with 'diabetes', any kind will satisfy; 
+  \item the length of admission was at least one day up to eighteen days; 
+  \item laboratory test results are available; and 
+  \item medications were administered. 
+\end{enumerate}  
+On these five criteria points, 101.000 encounters fulfilled all specifications. After some considerations with removing encounters based on incomplete (weight and medical specialty) or biased data (discharge to a hospice or death), 69.984 encounters remained in the final dataset. 
+
+The initial dataset consists of 55 attributes with the class attribute being an encounter of one patient. As there are way too many attributes to describe, please refer to the codebook for all descriptions; we only look at some important attributes and their type and possible valuations. The age of a patient is nominal and is grouped into ten-year intervals. The admission type or for what specific reason a patient was hospitalized, and comes in 9 distinct values while the type is nominal. Some attributes are numeric and count, for example, the amount of lab procedures, the number of medications and number of emergency visits. The database consists of three diagnosis attributes, which can have 848, 923 and 954 distinct values, respectively. The values are based on ICD9 three-letter codes and are of nominal type. Some other important attributes are whether a patient changed medications (with the values 'no change' and 'change'; nominal type) or had diabetes medication ('yes' or 'no' values; also of nominal typing). 24 other attributes depict whether a medicine is prescribed or not, if prescribed, then if the dosage was increased ('up'), decreased ('down'), or stayed the same ('steady') during the encounter. Readmission rates were calculated by looking at a nominal type ('Readmitted') with the possible valuations of '<30' for a patient that was readmitted within 30 days, '>30' for a patient that was readmitted after 30 days, and 'No' for patients that were not readmitted. The authors' goal was to determine whether a relationship between readmission rates and HbA1c measurement exists, therefore they introduced a new attribute 'HbA1c' with four different valuations, based on the information from the database: 1) no HbA1c test performed; 2) HbA1c performed and in normal range; 3) HbA1c performed and the result is greater than 8% with no change in diabetic medication; and 4) Hb1Ac performed, result is greater than 8% and diabetic medication was changed.
+
+## Research Question
+Is it possible, using machine learning techniques, to predict whether a patient's time in hospital is linked to the results of a HbA1c measurement?
+
+# Week 2 - EDA (Exploratory Data Analysis)
+Date: 14 September, 2020 
+
+In this section, we will perform an exploratory data analysis (EDA) to determine    variations exists in our dataset, exposing any missing values, and if they exist, 
+
+```{r Read in important files}
+library(formattable)
+library(dplyr)
+library(tidyr)
+encounter.data <- read.table(file = 'dataset_diabetes/diabetic_data.csv',
+                   sep = ',', header = TRUE)
+
+codebook <- read.table(file = 'codebook.csv', sep = ';',
+                       header = T)
+```
+
+
+```{r Summarize data}
+glimpse(encounter.data)
+summary(encounter.data)
+# number of medications, medical specialty, diabetes med, insulin, change, 
+```
+
+Date: 16 September, 2020
+
+```{r Determine missing values}
+myvars <- c('race', 'weight', 'payer_code', 'medical_specialty')
+amountRecords <- length(rownames(encounter.data))
+tableMissingValues <- encounter.data %>%
+  summarise_each_(funs("TotalMissing" = sum(.=='?', na.rm = TRUE), 
+                       "MissingValuesPercentage" = round(sum(.=='?', na.rm = TRUE)/amountRecords * 100, 2)), myvars) %>%
+  t()
+
+tableMissingValues <- data.frame(missingValues = tableMissingValues[1:4,], 
+                                 missingValuesPer = tableMissingValues[5:8,])
+rownames(tableMissingValues) <- myvars
+formattable(tableMissingValues)
+```
+
+```{r Determine variations}
+library(tidyverse)
+
+# We see a sharp decline in the number of days stayed in hospital
+ggplot(data = encounter.data) +
+  geom_bar(mapping = aes(x = time_in_hospital))
+
+ggplot(data = encounter.data, mapping = aes(x = time_in_hospital, color = diabetesMed)) +
+  geom_freqpoly(binwidth = 2)
+
+ggplot(data = encounter.data, mapping = aes(x = diabetesMed, y = time_in_hospital)) +
+  geom_boxplot()
+```
+
