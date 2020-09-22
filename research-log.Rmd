@@ -3,93 +3,493 @@ title: "Research log"
 author: "Dennis Scheper"
 date: "11-9-2020"
 output:
-  html_document:
-    df_print: paged
-  sansfont: Arial
   pdf_document:
     number_sections: yes
+  sansfont: Arial
+  html_document:
+    df_print: paged
+header-includes:
+- \usepackage{booktabs}
 ---
 \fontfamily{arial}
 \fontsize{12}{15}
 \selectfont
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(tidy=TRUE, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center')
 ```
-
 
 # Week 1 - original dataset
 Date: 11 September, 2020 (week 1)
 
 ## Introduction
-The article, "Impact of HbA1c Measurement on Hospital Readmission Rates: Analysis of 70,000 Clinical Database Patient Records", states that the management of hyperglycemia has a significant impact on the outcome and readmission rates of hospitalized patients. The authors based this conclusion on the comprehensive assessment of 70.000 diabetes patient records retrieved from 140 US hospitals. The results that depict the relationship between readmission rates and measurement of HbA1c levels, can aid in the enlargement of already existing diabetes tactics to reduce readmission rates further.
+The article, "Impact of HbA1c Measurement on Hospital Readmission Rates: Analysis of 70,000 Clinical Database Patient Records" states that hyperglycemia management has a significant impact on the outcome and readmission rates of hospitalized patients. The authors based this conclusion on the comprehensive assessment of 70.000 diabetes patient records retrieved from 140 US hospitals. The results that depict the relationship between readmission rates and the measurement of HbA1c levels can further enlargement of already existing diabetes tactics to reduce readmission rates.
 
 ## Dataset and Attributes Information
-All information used in this article comes from a database, consisting of 41 tables and totals 117 features, such as demographics (like gender, race and age), inpatient or outpatient, and (in-hospital) mortality. Data came from 130 hospitals in the USA over a ten-year period (1998-2008) and contains around 74 million unique visits by 18 million unique patients. This research used information that need to accede to the following specifications: 
+All information used in this article comes from a database, consisting of 41 tables and totals 117 features, such as demographics (like gender, race, and age), inpatient or outpatient, and (in-hospital) mortality. Data came from 130 hospitals in the USA for over ten years (1998-2008) and contained around 74 million unique visits by 18 million unique patients. This research used information that needs to accede to the following specifications: 
 \begin{enumerate}
-  \item is a hospital admission; 
-  \item the encounter is a diagnosed with 'diabetes', any kind will satisfy; 
-  \item the length of admission was at least one day up to eighteen days; 
-  \item laboratory test results are available; and 
-  \item medications were administered. 
+  \item Is a hospital admission; 
+  \item The encounter is a diagnosed with 'diabetes', any kind will satisfy; 
+  \item The length of admission was at least one day up to eighteen days; 
+  \item Laboratory test results are available; and 
+  \item Medications were administered. 
 \end{enumerate}  
-On these five criteria points, 101.000 encounters fulfilled all specifications. After some considerations with removing encounters based on incomplete (weight and medical specialty) or biased data (discharge to a hospice or death), 69.984 encounters remained in the final dataset. 
+Of these five criteria points, 101.000 encounters fulfilled all specifications. After some considerations with removing encounters based on incomplete (weight and medical specialty) or biased data (discharge to a hospice or death), 69.984 encounters remained in the final dataset. 
 
-The initial dataset consists of 55 attributes with the class attribute being an encounter of one patient. As there are way too many attributes to describe, please refer to the codebook for all descriptions; we only look at some important attributes and their type and possible valuations. The age of a patient is nominal and is grouped into ten-year intervals. The admission type or for what specific reason a patient was hospitalized, and comes in 9 distinct values while the type is nominal. Some attributes are numeric and count, for example, the amount of lab procedures, the number of medications and number of emergency visits. The database consists of three diagnosis attributes, which can have 848, 923 and 954 distinct values, respectively. The values are based on ICD9 three-letter codes and are of nominal type. Some other important attributes are whether a patient changed medications (with the values 'no change' and 'change'; nominal type) or had diabetes medication ('yes' or 'no' values; also of nominal typing). 24 other attributes depict whether a medicine is prescribed or not, if prescribed, then if the dosage was increased ('up'), decreased ('down'), or stayed the same ('steady') during the encounter. Readmission rates were calculated by looking at a nominal type ('Readmitted') with the possible valuations of '<30' for a patient that was readmitted within 30 days, '>30' for a patient that was readmitted after 30 days, and 'No' for patients that were not readmitted. The authors' goal was to determine whether a relationship between readmission rates and HbA1c measurement exists, therefore they introduced a new attribute 'HbA1c' with four different valuations, based on the information from the database: 1) no HbA1c test performed; 2) HbA1c performed and in normal range; 3) HbA1c performed and the result is greater than 8% with no change in diabetic medication; and 4) Hb1Ac performed, result is greater than 8% and diabetic medication was changed.
+The initial dataset consists of 55 attributes, with the class attribute being an encounter of one patient. As there are way too many attributes to describe, please refer to the codebook for all descriptions; we only look at some essential attributes and their type and possible valuations. The age of a patient is nominal and is grouped into ten-year intervals. The admission type or for what specific reason a patient was hospitalized and comes in 9 distinct values while the type is nominal. Some attributes are numeric and count, such as the number of lab procedures, the number of medications, and the number of emergency visits. The database consists of three diagnosis attributes, which can have 848, 923, and 954 distinct values, respectively. The values are based on ICD9 three-letter codes and are of the nominal type. Other vital attributes are whether a patient changed medications (with the values 'no change' and 'change'; nominal type) or had diabetes medication ('yes' or 'no' values and nominal typing). Twenty-four other attributes depict whether medicine is prescribed or not, if prescribed, then if the dosage was increased ('up'), decreased ('down'), or stayed the same ('steady') during the encounter. Readmission rates were calculated by looking at a nominal type ('Readmitted') with the possible valuations of '<30' for a patient that was readmitted within 30 days, '>30' for a patient that was readmitted after 30 days, and 'No' for patients that were not readmitted. The authors' goal was to determine whether a relationship between readmission rates and HbA1c measurement exists; therefore, they introduced a new attribute 'HbA1c' with four different valuations, based on the information from the database: 1) no HbA1c test performed; 2) HbA1c performed and in the normal range; 3) HbA1c performed and the result is greater than 8% with no change in diabetic medication; and 4) Hb1Ac performed, the result is more significant than 8%, and diabetic medication was changed.
 
 ## Research Question
-Is it possible, using machine learning techniques, to predict whether a patient's time in hospital is linked to the results of a HbA1c measurement?
+Is it possible, using machine learning techniques, to predict whether a patient's time in hospital is linked to the results of an HbA1c measurement?
 
+\newpage
 # Week 2 - EDA (Exploratory Data Analysis)
-Date: 14 September, 2020 
+## Date: 14 September, 2020 
+This section will perform an exploratory data analysis (EDA) on the dataset described above. With an EDA, we can explore our dataset and determine if any correlations exist between attributes and undermine any missing values. If any exist, we deal with them accordingly, looking to repair these values or remove them entirely. Additionally, we will look at variations between and in attributes for determining which ones are of most importance and interest to our research goals. 
 
-In this section, we will perform an exploratory data analysis (EDA) to determine    variations exists in our dataset, exposing any missing values, and if they exist, 
+First, we load in our used packages, mostly used for visualization of data, and the data itself. Besides that, we also load in a codebook, which contains, i.e., a description for every attribute for the initial dataset. The codebook was not retrieved from any outside source but was constructed on the interpretation of the data.
 
-```{r Read in important files}
+```{r Load used packages and read in some important files}
+# Load used packages
 library(formattable)
 library(dplyr)
 library(tidyr)
+library(tidyverse)
+library(ggplot2)
+library(grid)
+library(gridExtra)
+library(reshape2)
+library(hexbin)
+library(foreign)
+library(xtable)
+
+# Load in used data
 encounter.data <- read.table(file = 'dataset_diabetes/diabetic_data.csv',
                    sep = ',', header = TRUE)
 
-codebook <- read.table(file = 'codebook.csv', sep = ';',
+codebook <- read.csv(file = 'codebook.csv', sep = ';',
                        header = T)
 ```
 
+To get a better picture of our dataset's distribution, we called upon the function glimpse(). We notice that the data contains `r ncol(encounter.data)` columns/ attributes. Additionally, a summary() function gives an outline of every attribute, showing each level with a count of its valuation.
 
 ```{r Summarize data}
+# Give a glimpse of how the data is distributed
 glimpse(encounter.data)
+# Give a quick summary of the data, and give information such as min and max value, median and mean
 summary(encounter.data)
-# number of medications, medical specialty, diabetes med, insulin, change, 
 ```
-
-Date: 16 September, 2020
+\newpage
+## Missing values
+As we see in the result determined by the glimpse() function, the columns race, weight, payer_code, gender, diag_3, and medical specialty have some or significant amounts of missing values. To get a better picture, we will zoom in on these attributes and determine the amount and the percentage of missing values.
 
 ```{r Determine missing values}
-myvars <- c('race', 'weight', 'payer_code', 'medical_specialty')
+library(xtable)
+myvars <- c('race', 'weight', 'payer_code', 'medical_specialty', 'gender', 'diag_3')
 amountRecords <- length(rownames(encounter.data))
 tableMissingValues <- encounter.data %>%
-  summarise_each_(funs("TotalMissing" = sum(.=='?', na.rm = TRUE), 
-                       "MissingValuesPercentage" = round(sum(.=='?', na.rm = TRUE)/amountRecords * 100, 2)), myvars) %>%
+  summarise_each_(funs("TotalMissing" = sum(. %in% c('?', 'Unknown/Invalid'), na.rm = TRUE), 
+                       "MissingValuesPercentage" = round(sum(. %in% c('?', 'Unknown/Invalid'), na.rm = TRUE)/amountRecords * 100, 2)), myvars) %>%
   t()
-
-tableMissingValues <- data.frame(missingValues = tableMissingValues[1:4,], 
-                                 missingValuesPer = tableMissingValues[5:8,])
+tableMissingValues <- data.frame("Missing.Values" = tableMissingValues[1:6,], 
+                                 "Missing.Values.Percentage" = tableMissingValues[7:12,])
 rownames(tableMissingValues) <- myvars
-formattable(tableMissingValues)
 ```
 
-```{r Determine variations}
-library(tidyverse)
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrr}
+  \hline
+ & Missing.Values & Missing.Values.Percentage \\ 
+  \hline
+race & 2273.00 & 2.23 \\ 
+  weight & 98569.00 & 96.86 \\ 
+  payer\_code & 40256.00 & 39.56 \\ 
+  medical\_specialty & 49949.00 & 49.08 \\ 
+  gender & 3.00 & 0.00 \\ 
+  diag\_3 & 1423.00 & 1.40 \\ 
+   \hline
+\end{tabular}
+\end{table}
 
-# We see a sharp decline in the number of days stayed in hospital
-ggplot(data = encounter.data) +
-  geom_bar(mapping = aes(x = time_in_hospital))
 
-ggplot(data = encounter.data, mapping = aes(x = time_in_hospital, color = diabetesMed)) +
-  geom_freqpoly(binwidth = 2)
+As we notice in table 1, attribute weight is almost entirely made-up of missing values. For that reason, it is a candidate for removal. The same can be said for payer_code and medical_specialty, where `r tableMissingValues['payer_code', 2]`% and `r tableMissingValues['medical_specialty', 2]`% of values are missing, respectively. Payer_code has no significant value to our research goals and questions; therefore, it can be removed. Medical_specialty can be of value as it contains a range of useful information. Missing values can be set to 'Missing' or reevaluated based on other valuations; doing this is not without risk, as it is almost half of the attributes' values. Deleting all missing values is not doable as it removes half of all records! Setting it to 'Missing' seems to be the most logical option. Attributes race and diag_3 seem to have little amounts of missing data, but removing these values can alter our outcomes; therefore, we will use the same approach as to medical_specialty. Gender only has three missing values. Considering the amount does not account to even one percent, removal does not seem to harm, and gender is, in most cases, considered binary data.
 
-ggplot(data = encounter.data, mapping = aes(x = diabetesMed, y = time_in_hospital)) +
-  geom_boxplot()
+In the next section, we will introduce a new attribute (HbA1c measurement) based on an A1C test and the response to that result, which is defined as a change in diabetic medication. This test was performed at the time of hospital admission. We consider four groups of encounters:
+\begin{enumerate}
+  \item no HbA1c test performed;
+  \item HbA1c performed and in normal range;
+  \item HbA1c performed and the result is greater than 8% with no change in diabetic medication; and
+  \item HbA1c performed, result is greater than 8%, and diabetic mediation was changed.
+\end{enumerate}  
+
+```{r Introducing a new attribute}
+encounter.data <- encounter.data %>%
+  mutate(hba1c_res=ifelse((A1Cresult=='None'), 1, NA)) %>%
+  mutate(hba1c_res=ifelse((A1Cresult %in% c('Norm', '>7')) & is.na(hba1c_res), 2, hba1c_res)) %>%
+  mutate(hba1c_res=ifelse((A1Cresult=='>8') & (change=='No') & is.na(hba1c_res), 3, hba1c_res)) %>%
+  mutate(hba1c_res=ifelse((A1Cresult=='>8') & (change=='Ch') & is.na(hba1c_res), 4, hba1c_res))
 ```
 
+(Date: 18-20 September, 2020)
+
+Before we start analyzing our dataset, it is crucial to check on duplicates as our dataset contains multiple inpatient visits for some patients. These observations cannot be statistically independent and would create noise. We thus declare that only one encounter per patient is optimal.
+
+```{r Finding duplicates}
+duplicateCheck <- encounter.data %>%
+  group_by(patient_nbr) %>%
+  summarise(count=n()) %>%
+  filter(count>1)
+table.dup <- data.frame('Initial number of records' = nrow(encounter.data),
+                        'Number of Duplicates' = nrow(duplicateCheck),
+                        'Difference in percent' = round((nrow(encounter.data) - nrow(duplicateCheck) - nrow(encounter.data)) / nrow(encounter.data) * 100, 2) )
+```
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrr}
+  \hline
+ & Initial.number.of.records & Number.of.Duplicates & Difference.in.percent \\ 
+  \hline
+1 & 101766 & 16773 & -16.48 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+The initial dataset started with `r table.dup['Initial.number.of.records', 1]` records, of which `r table.dup['Number.of.Duplicates', 1]` were duplicates. A potential removal of these records would leave us with `r nrow(encounter.data) - nrow(duplicateCheck)` records, a total loss of `r table.dup['Difference.in.percent', 1]`%. A small price to pay for a statistically independent dataset.
+
+\newpage
+## Categorial attributes
+In this section, we take a look at variations in and between attributes. The attribute gender consists of three values ('female,' 'male,' and 'missing/unknown'). Since observe and use this attribute, it is essential to remove the abundant value.
+
+```{r Show -basic- variations}
+# First we need to remove all records containing the third option of gender: 'Missing/unknown',
+# as this can be lethal in further analysis
+encounter.data <- encounter.data %>%
+  select(everything()) %>%
+  filter(gender != 'Unknown/Invalid') %>%
+  droplevels()
+
+# Count specific variables of interest
+agg <- count(encounter.data, age, gender, A1Cresult, race)
+
+# Specify a color per value for visualization
+ecols <- c(Female = "pink", Male = "blue2")
+p1 <- ggplot(agg) +
+       geom_col(aes(x = race, y = n, fill = gender)) +
+       scale_fill_manual(values = ecols) +
+       labs(title="Race distributed with gender",
+            x ="Race", y = "Total counts", subtitle = "1(a)")
+p2 <- ggplot(agg) +
+       geom_col(aes(x = age, y = n, fill = gender)) +
+       scale_fill_manual(values = ecols) +
+       labs(title="Age distributed with gender",
+            x ="Age", y = "Total counts", subtitle = "1(b)")
+
+ecols <- c(">7" = "blue", ">8" = "orange", "None" = "green", "Norm" = "yellow")
+p3 <- ggplot(agg) +
+       geom_col(aes(x = age, y = n, fill = A1Cresult)) +
+       scale_fill_manual(values = ecols) +
+       labs(title="Age distributed with A1C test result",
+            x ="Age", y = "Total counts", subtitle = '2')
+      
+
+# Arrange p1 and p2 in a multiplot and leave p3 on its own
+grid.arrange(p1, p2)
+grid.arrange(p3)
+```
+Looking at figure 1a, we notice that most patients are from the Caucasian race with almost equivalent male and female ratios. We expect a rise in the number of diabetes patients when looking at older population groups. Figure 1b shows this exact prediction; the data is negatively skewed and increases in numbers per older age group. We observe the same results in figure 2, where an increase in A1C test is shown when comparing older population groups. Additionally, the figure gives an essential insight for many patients - in most cases, the test was not conducted and shows that strategies surrounding testing diabetes are not normalized in hospital protocols. 
+
+This graph does not, however, make a distinction between non-ICU and ICU patients. The authors of the original dataset analyses stated that ICU departments' protocols have a stricter policy surrounding testing for diabetes. When comparing non-ICU and ICU patient records, we need to construct a new attribute called 'icu_or_non,' comprising data from attributes admission_type_id, admission_source_id, and discharge_disposition_id. We distinguish between non-ICU and ICU patients.
+
+```{r ICU versus non-ICU}
+encounter.data <- encounter.data %>%
+  # Removing dead patients
+  filter(discharge_disposition_id != 11) %>%
+  # Distinction between ICU and non-ICU patients
+  mutate(admission_type_id = ifelse(admission_type_id %in% c(1, 2, 7),
+                                    'ICU patient', 'Non-ICU patient')) %>%
+  mutate(admission_source_id = ifelse(admission_source_id %in% c(4, 7, 10, 12, 26),
+                                      'ICU patient', 'Non-ICU patient')) %>%
+  mutate(discharge_disposition_id = ifelse(discharge_disposition_id %in% c(13, 14, 19, 20, 21),
+                                           'ICU patient', 'Non-ICU patient'))
+# Now that we changed the labels, let us discover how many ICU and non-ICU patients we have
+encounter.data <- encounter.data %>%
+  # All columns need to be equal to each other
+  mutate(icu_or_non = ifelse(admission_source_id == discharge_disposition_id &
+                             admission_type_id   == discharge_disposition_id,
+                             admission_source_id, 
+                             ifelse(admission_source_id == discharge_disposition_id,
+                                    admission_source_id, admission_source_id)))
+encounter.data$icu_or_non <- as.factor(encounter.data$icu_or_non)
+
+agg <- count(encounter.data, gender, A1Cresult, icu_or_non, race)
+ecols <- c(Female = "pink", Male = "blue2")
+p1 <- ggplot(agg) +
+       geom_col(aes(x = icu_or_non, y = n, fill = gender)) +
+       scale_fill_manual(values = ecols) +
+       labs(title="ICU statistics distributed with gender",
+            x ="ICU or non-ICU patient", y = "Total counts",
+            subtitle = "3(a)")
+       
+p2 <- ggplot(agg) +
+       geom_col(aes(x = icu_or_non, y = n, fill = race)) +
+       labs(title="ICU statistics distributed with race",
+            x ="ICU or non-ICU patient", y = "Total counts",
+            subtitle = "3(b)")
+       
+ecols <- c('ICU patient' = 'blue', 'Non-ICU patient' = 'red')
+p3 <- ggplot(agg) + 
+       geom_col(aes(x = A1Cresult, y = n, fill = icu_or_non)) +
+       scale_fill_manual(values = ecols) +
+       labs(title="ICU statistics distributed with A1C test result",
+            x ="ICU or non-ICU patient", y = "Total counts", subtitle = '4')
+
+grid.arrange(p1, p2)
+grid.arrange(p3)
+```
+We observe the result from the distinction between ICU and non-ICU in figures 3a, 3b, and 4. We notice a smaller population of non-ICU patients in all mentioned figures, whereas the ratio of not only gender but also seen in 3b, where race is depicted, ratios stay consequently the same. Figure 4 shows that no matter the patient type (ICU or non-ICU), protocols surrounding diabetes testing is not firmly conducted. Keeping the distinction between non-ICU and ICU might not be necessary. However, it can be of complimentary use when starting with machine learning; the data is binary, and it allows the removal of three attributes.
+
+The attributes diag_1, diag_2, and diag_3 consist of many three-digit ICD codes. Many of these codes belong together in a subgroup. In the following section, we will construct a better way of describing the exact diagnosis. ICD codes descriptions are retrieved from \cite{ICD}.
+
+```{r Diagnosis}
+encounter.data <- encounter.data %>%
+  mutate(diag_1 = case_when(diag_1 %in% c(390:459) ~ 'Circulatory',
+                            diag_1 %in% c(460:519) ~ 'Respiratory',
+                            diag_1 %in% c(520:579) ~ 'Digestive',
+                            diag_1 %in% c(240:279) ~ 'Diabetes',
+                            diag_1 %in% c(800:999) ~ 'Injury',
+                            diag_1 %in% c(710:739) ~ 'Muscoloskeletal',
+                            diag_1 %in% c(580:629) ~ 'Genitourinary',
+                            TRUE ~ 'Others'))
+
+encounter.data <- encounter.data %>%
+  mutate(diag_2 = case_when(diag_2 %in% c(390:459) ~ 'Circulatory',
+                            diag_2 %in% c(460:519) ~ 'Respiratory',
+                            diag_2 %in% c(520:579) ~ 'Digestive',
+                            diag_2 %in% c(240:279) ~ 'Diabetes',
+                            diag_2 %in% c(800:999) ~ 'Injury',
+                            diag_2 %in% c(710:739) ~ 'Muscoloskeletal',
+                            diag_2 %in% c(580:629) ~ 'Genitourinary',
+                            TRUE ~ 'Others'))
+encounter.data <- encounter.data %>%
+  mutate(diag_3 = case_when(diag_3 %in% c(390:459) ~ 'Circulatory',
+                            diag_3 %in% c(460:519) ~ 'Respiratory',
+                            diag_3 %in% c(520:579) ~ 'Digestive',
+                            diag_3 %in% c(240:279) ~ 'Diabetes',
+                            diag_3 %in% c(800:999) ~ 'Injury',
+                            diag_3 %in% c(710:739) ~ 'Muscoloskeletal',
+                            diag_3 %in% c(580:629) ~ 'Genitourinary',
+                            TRUE ~ 'Others'))
+
+# Convert to factors again
+cols <- c('diag_1', 'diag_2', 'diag_3')
+encounter.data[cols] <- lapply(encounter.data[cols], factor)
+agg <- count(encounter.data, gender, diag_1, diag_2, diag_3)
+
+# Specify a color per value for visualization
+ecols <- c(Female = "pink", Male = "blue2")
+p1 <- ggplot(agg) +
+       geom_col(aes(x = diag_1, y = n, fill = gender)) +
+       scale_fill_manual(values = ecols) +
+      labs(title="Primary diagnosis distributed with gender",
+            x ="Primary diagnosis [category]", y = "Total counts",
+            subtitle = "5(a)")
+p2 <- ggplot(agg) +
+       geom_col(aes(x = diag_2, y = n, fill = gender)) +
+       scale_fill_manual(values = ecols) +
+       labs(title="Secondary diagnosis distributed with gender",
+            x ="Secondary diagnosis [category]", y = "Total counts",
+            subtitle = "5(b)")
+p3 <- ggplot(agg) +
+       geom_col(aes(x = diag_3, y = n, fill = gender)) +
+       scale_fill_manual(values = ecols) +
+       labs(title="Final diagnosis distributed with gender",
+            x ="Final diagnosis [category]", y = "Total counts",
+            subtitle = "5(c)")
+
+grid.arrange(p1, p2, p3)
+```
+
+Looking at figure 5, we can see the results of the revaluation of attributes diag_1, diag_2, and diag_3. These attributes depict the primary, secondary, and final diagnosis of a patient, respectively. Interestingly, the difference between the figures is the increase in the number of diabetes diagnoses. Due to not testing diabetes on the initial hospitalization, readmission rates increase as a patient's primary diagnosis is not sustainable. The data classification now shows a clearer picture and would undoubtedly be of fair use in the final dataset. The original authors did not keep diag_2 and diag_3, as it would make records too complex to achieve their goals. Removal of these two attributes is still up for discussion, but the analysis does not give - for now - a clear indication for potential removal.
+
+In the next section, we look at attribute medical_specialty and decide whether it is useful enough - considering the number of missing values - to be a candidate for the final dataset. We construct multiple plots that zoom in on the categories and valuations of this attribute.
+
+```{r Medical specialty}
+library(pals)
+
+# Count data we want to compare
+agg <- count(encounter.data, age, medical_specialty, gender)
+
+# Determine a color scheme for 71 values
+ecols <- c(alphabet(26), cols25(25), glasbey(22))
+
+# Order variables from high to low via '-n'
+agg_ord <- mutate(agg,
+                  age = reorder(age, -n, sum),
+                  medical_specialty = reorder(medical_specialty, -n, sum))
+# p1: bar plot combined, and p2: per gender
+p1 <- ggplot(agg_ord) +
+      geom_col(aes(x = age, y = n, fill = medical_specialty)) +
+      scale_fill_manual(values = ecols) +
+      theme(legend.position = 'none') +
+      labs(title="Medical specialty distributed with age groups and divided into gender",
+           x ="Age [group]", y = "Total counts", subtitle = '6')
+      
+p1 <- p1 + facet_wrap(~gender) +
+      theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+# Do the same as above, only now with pie charts
+p2 <- ggplot(agg_ord) +
+      geom_col(aes(x = 1, y = n, fill = medical_specialty), position = "fill") +
+      coord_polar(theta = "y") +
+      scale_fill_manual(values = ecols) +
+      theme(legend.position = 'none')
+p2 <- p2 + facet_wrap(~gender) +
+    theme_bw() +
+    theme(legend.position = 'none')
+
+# Plot all results
+grid.arrange(p1)
+grid.arrange(p2)
+```
+Looking at both figures 6 and 7, we observe a large amount of valuation between all demographic attributes used. Depicted in purple are the missing values, as already established, make-up almost 50 percent of total records. Medical specialty is different from, for example, admission_id, where we could shrink the attribute to a better format. This is an alternative to this attribute. We are considering this with the fact that medical specialty does not give better information than any diagnosis attribute, which also gives, maybe even more useful, guidance about an encounter's medical history. At this stage, removal of this attribute could not be of lethal harm. 
+
+For our final categorical attribute, and one of the most influential -according to the original authors- we will discuss readmitted. Readmitted is an attribute with three different valuations: '<30' for readmission within 30 days after release, '>30' for readmission after 30 days release, and 'NO' for no readmission. 
+
+```{r Readmission}
+agg <- count(encounter.data, readmitted, race, gender, age, diag_1, diag_2)
+ecols <- c('<30' = 'red', '>30' = 'blue', 'NO' = 'pink')
+
+p1 <- ggplot(agg) +
+       geom_col(aes(x = race, y = n, fill = readmitted)) +
+       scale_fill_manual(values = ecols) +
+       labs(title="Readmitted distributed with race and divided into gender",
+            x ="Race [group]", y = "Total counts", subtitle = "8(a)")
+p1 <- p1 + facet_wrap(~gender) +
+       theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+p2 <- ggplot(agg) +
+       geom_col(aes(x = age, y = n, fill = readmitted)) +
+       scale_fill_manual(values = ecols) +
+       labs(title="Readmitted distributed with age and divided into gender",
+            x ="Age [group]", y = "Total counts", subtitle = "8(b)")
+p2 <- p2 + facet_wrap(~gender) + 
+       theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+p3 <- ggplot(agg) +
+       geom_col(aes(x = diag_1, y = n, fill = readmitted)) +
+       scale_fill_manual(values = ecols) +
+       labs(title="Readmitted distributed with primary diagnosis and divided into gender",
+            x ="Primary diagnosis [category]", y = "Total counts", subtitle = '9')
+p3 <- p3 + facet_wrap(~gender) +
+       theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+p4 <- ggplot(agg) +
+       geom_col(aes(x = diag_2, y = n, fill = readmitted)) +
+       scale_fill_manual(values = ecols) +
+       labs(title="Readmitted distributed with secondary diagnosis and divided into gender",
+            x ="Secondary diagnosis [category]", y = "Total counts", subtitle = '10')
+p4 <- p4 + facet_wrap(~gender) +
+       theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+grid.arrange(p1, p2)
+grid.arrange(p3)
+grid.arrange(p4)
+```
+We observe the results of analyzing the readmitted attribute. We looked at readmitted with different demographics (gender, age, and race) and two of the three diagnosis attributes. Figure 8a shows that the Caucasian race has the most readmission rates in both genders. Observations made in figure 8b depict that as age increases, readmission rates also increase for females and males. This makes sense as immunity decreases with age, and the chance of recovery diminishes. Readmission rates decrease after the age of 80. The reasoning behind this might be death or transferring to a hospice or other facility. 
+
+Comparing the results in figures 9 and 10, we see a familiar trend: the increase of diabetes diagnoses between the primary and secondary diagnoses. This typically means that patients admitted were diagnosed differently, and over time, are getting a new diabetes diagnosis much quicker. 
+
+Seeing as we have multiple diagnosis categories but are somewhat interested in diabetes only, we can alter these attributes to have only two valuations ('diabetes' and 'other'). However, doing this can affect later analysis as we remove potentially valuable information. 
+
+## Distribution - numeric attributes
+We discussed many categorical data attributes, now turn to our few numeric data. It is important to have a good distribution between numeric data. If the range of distribution is too large, then normalization is necessary. We construct multiple histograms, which we get through the histogram.plotter() function.
+
+```{r Distribution}
+# Define a histogram plotter to construct multiple figures really quick
+histogram.plotter <- function(attribute_1, number, attribute_name){
+  histogram <- ggplot() +
+                geom_bar(mapping = aes(x=attribute_1)) +
+                ggtitle(number) +
+                xlab(attribute_name)
+  print(histogram)
+}
+
+# Make a smaller dataset so that only the numeric data is collected
+numeric.data <- select_if(encounter.data, is.numeric)
+# Remove encounter and patient ID
+numeric.data <- numeric.data[, -c(1, 2)]
+smaller.codebook <- codebook[c(10, 13:18, 22), 2]
+
+p <- list()
+for ( i in c(1:length(numeric.data)) ){
+  p[[i]] <- histogram.plotter(numeric.data[, i], LETTERS[i], smaller.codebook[i])
+}
+
+# Arrange in two multiplots
+do.call(grid.arrange, p[1:4])
+do.call(grid.arrange, p[5:8])
+```
+Looking at the results, depicted in figures 11 and 12, shows that not all of the attributes are evenly distributed. Normalization might be necessary to correct the distributions of namely B, which makes a couple of weird spikes, E, F, and G, which are all -but B- number of visits of an encounter. We might want to introduce a new attribute, total_visits, which accounts for all visits made by one encounter. The method of normalization is still up for debate.
+
+\newpage
+## Correlation - numeric attributes
+To discover any correlation between the numeric data in our dataset, we constructed a heatmap, which is depicted below. We discuss a possible correlation between age and time spent in the hospital and the potential relationship between the num_lab_procedures and num_medications.
+```{r Heatmaps}
+melted.data <- numeric.data %>%
+  cor() %>%
+  melt()
+
+# Construct the heatmap
+ggplot(data = melted.data, aes(x = Var1, y = Var2, fill = value)) + 
+  geom_tile() + 
+  labs(x = NULL, y = NULL, subtitle = '13') +
+  scale_fill_gradient2(low = "orange", high = "red", mid = "yellow") +
+  theme(axis.text.x = element_text(angle = 90))
+
+# Is the amount of time spent in hospital age-dependent?
+encounter.data %>%
+  count(age, time_in_hospital) %>%
+  ggplot(mapping = aes(x = age, y = time_in_hospital)) +
+    geom_tile(mapping = aes(fill = n)) +
+    labs(subtitle = '14')
+
+# Is there a correlation between num_lab_procedures and num_medications?
+encounter.data %>%
+  ggplot() +
+   geom_hex(mapping=aes(x = num_lab_procedures, y = num_medications)) +
+   labs(subtitle = '15')
+```
+
+Looking at our heatmap (shown in figure 13), we determine a strong correlation as red, a small correlation as orange, and no correlation as yellow. The attributes that stand out are, for example, num_medications-time_in_hospital, num_procedures-num_medications, and hba1c_res-num_medications. As we can see, it is mostly the num_medication attribute that has some correlation. Others do not stand out that much. We can conclude that most of the attributes are non-correlated, at least for the numeric attributes. 
+
+Looking at figure 14, we observe that the age groups above [40-50) increases in total counts; consequently, the total time spent in the hospital before release also increases. We can, therefore, conclude that the time_in_hospital attribute is dependent on a patient's age. Finally, we zoom in on two attributes that had a (small) correlation depicted in figure 13. Figure 15 shows this the result of zooming in on num_medications and num_lab_procedures, the result shows that most encounters have a valuation between 15-20 medications and 40-60 amount of lab procedures. The result also shows a lot of outliers, which normalization could solve.
+
+End of the EDA.
+--
+
+# Results
+
+# Discussion and conclusion
+
+# References
+\begin{thebibliography}{9}
+\bibitem{OrgData}
+Beata Strack, Jonathan P. DeShazo, Chris Gennings, Juan L. Olmo, Sebastian Ventura, Krzysztof J. Cios, and John N. Clore, “Impact of HbA1c Measurement on Hospital Readmission Rates: Analysis of 70,000 Clinical Database Patient Records,” BioMed Research International, vol. 2014, Article ID 781670, 11 pages, 2014. DOI: \url{https://doi.org/10.1155/2014/781670}
+\bibitem{ICD}
+Centers for Disease Control and Prevention, National Center for Health Statistics, \textit{ICD-9}, \url{https://www.cdc.gov/nchs/icd/icd9.htm}, November 6, 2015.
+\end{thebibliography}
+
+\newpage
+\newpage
+\newpage
+# Week 3: A Clean Dataset
+```{r Restructering and removal of abdundant data, eval=FALSE}
+library(plyr)
+# Removing the weight and payer_code attributes
+encounter.data <- encounter.data[, !names(encounter.data) %in% c('weight', 'payer_code')]
+# Relabeling all '?' values to 'Missing or unknown' and 'Missing', respectively
+encounter.data$medical_specialty <- revalue(encounter.data$medical_specialty, c('?'='Missing or unknown'))
+encounter.data$race <- revalue(encounter.data$race, c('?'='Missing'))
+
+# Now or on a later moment in the visualization process?
+# Explain
+encounter.data <- encounter.data %>%
+  distinct(patient_nbr, .keep_all = T) %>%
+  filter(!(discharge_disposition_id %in% c(11, 13, 14, 19, 20, 21)))
+```
