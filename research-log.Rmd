@@ -1,7 +1,7 @@
 ---
 title: "Research log"
 author: "Dennis Scheper"
-date: "11-9-2020"
+date: "`r Sys.Date()`"
 output:
   pdf_document:
     number_sections: yes
@@ -16,10 +16,10 @@ header-includes:
 \selectfont
 
 ```{r setup, include=FALSE, warning=FALSE, message=FALSE}
-knitr::opts_chunk$set(tidy=TRUE, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center')
+knitr::opts_chunk$set(tidy=TRUE, message=FALSE, warning=FALSE, fig.align='center')
 ```
 
-# Week 1 - original dataset
+# Original dataset
 Date: 11 September, 2020 (week 1)
 
 ## Introduction
@@ -39,10 +39,10 @@ Of these five criteria points, 101.000 encounters fulfilled all specifications. 
 The initial dataset consists of 55 attributes, with the class attribute being an encounter of one patient. As there are way too many attributes to describe, please refer to the codebook for all descriptions; we only look at some essential attributes and their type and possible valuations. The age of a patient is nominal and is grouped into ten-year intervals. The admission type or for what specific reason a patient was hospitalized and comes in 9 distinct values while the type is nominal. Some attributes are numeric and count, such as the number of lab procedures, the number of medications, and the number of emergency visits. The database consists of three diagnosis attributes, which can have 848, 923, and 954 distinct values, respectively. The values are based on ICD9 three-letter codes and are of the nominal type. Other vital attributes are whether a patient changed medications (with the values 'no change' and 'change'; nominal type) or had diabetes medication ('yes' or 'no' values and nominal typing). Twenty-four other attributes depict whether medicine is prescribed or not, if prescribed, then if the dosage was increased ('up'), decreased ('down'), or stayed the same ('steady') during the encounter. Readmission rates were calculated by looking at a nominal type ('Readmitted') with the possible valuations of '<30' for a patient that was readmitted within 30 days, '>30' for a patient that was readmitted after 30 days, and 'No' for patients that were not readmitted. The authors' goal was to determine whether a relationship between readmission rates and HbA1c measurement exists; therefore, they introduced a new attribute 'HbA1c' with four different valuations, based on the information from the database: 1) no HbA1c test performed; 2) HbA1c performed and in the normal range; 3) HbA1c performed and the result is greater than 8% with no change in diabetic medication; and 4) Hb1Ac performed, the result is more significant than 8%, and diabetic medication was changed.
 
 ## Research Question
-Is it possible, using machine learning techniques, to predict whether a patient's time in hospital is linked to the results of an HbA1c measurement?
+Is it possible, using machine learning techniques, to predict a patient's time in hospital  linked to the results of an HbA1c measurement?
 
 \newpage
-# Week 2 - EDA (Exploratory Data Analysis)
+# EDA (Exploratory Data Analysis)
 ## Date: 14 September, 2020 
 This section will perform an exploratory data analysis (EDA) on the dataset described above. With an EDA, we can explore our dataset and determine if any correlations exist between attributes and undermine any missing values. If any exist, we deal with them accordingly, looking to repair these values or remove them entirely. Additionally, we will look at variations between and in attributes for determining which ones are of most importance and interest to our research goals. 
 
@@ -51,20 +51,20 @@ First, we load in our used packages, mostly used for visualization of data, and 
 ```{r Load used packages and read in some important files}
 # Load used packages
 library(formattable)
-library(dplyr)
+library(plyr)
+library(dplyr, warn.conflicts = FALSE)
 library(tidyr)
 library(tidyverse)
 library(ggplot2)
 library(grid)
 library(gridExtra)
-library(reshape2)
 library(hexbin)
 library(foreign)
 library(xtable)
 
 # Load in used data
-encounter.data <- read.table(file = 'dataset_diabetes/diabetic_data.csv',
-                   sep = ',', header = TRUE)
+encounter.data <- read.table(file = 'dataset_diabetes/retrieved_data/diabetic_data.csv',
+                                              sep = ',', header = TRUE)
 
 codebook <- read.csv(file = 'codebook.csv', sep = ';',
                        header = T)
@@ -83,7 +83,6 @@ summary(encounter.data)
 As we see in the result determined by the glimpse() function, the columns race, weight, payer_code, gender, diag_3, and medical specialty have some or significant amounts of missing values. To get a better picture, we will zoom in on these attributes and determine the amount and the percentage of missing values.
 
 ```{r Determine missing values}
-library(xtable)
 myvars <- c('race', 'weight', 'payer_code', 'medical_specialty', 'gender', 'diag_3')
 amountRecords <- length(rownames(encounter.data))
 tableMissingValues <- encounter.data %>%
@@ -93,6 +92,11 @@ tableMissingValues <- encounter.data %>%
 tableMissingValues <- data.frame("Missing.Values" = tableMissingValues[1:6,], 
                                  "Missing.Values.Percentage" = tableMissingValues[7:12,])
 rownames(tableMissingValues) <- myvars
+
+# Added 27-09
+library(naniar)
+encounter.data.missing <- replace(encounter.data, encounter.data == "?", NA)
+vis_miss(encounter.data.missing, warn_large_data = F)
 ```
 
 \begin{table}[ht]
@@ -111,7 +115,6 @@ race & 2273.00 & 2.23 \\
 \end{tabular}
 \end{table}
 
-
 As we notice in table 1, attribute weight is almost entirely made-up of missing values. For that reason, it is a candidate for removal. The same can be said for payer_code and medical_specialty, where `r tableMissingValues['payer_code', 2]`% and `r tableMissingValues['medical_specialty', 2]`% of values are missing, respectively. Payer_code has no significant value to our research goals and questions; therefore, it can be removed. Medical_specialty can be of value as it contains a range of useful information. Missing values can be set to 'Missing' or reevaluated based on other valuations; doing this is not without risk, as it is almost half of the attributes' values. Deleting all missing values is not doable as it removes half of all records! Setting it to 'Missing' seems to be the most logical option. Attributes race and diag_3 seem to have little amounts of missing data, but removing these values can alter our outcomes; therefore, we will use the same approach as to medical_specialty. Gender only has three missing values. Considering the amount does not account to even one percent, removal does not seem to harm, and gender is, in most cases, considered binary data.
 
 In the next section, we will introduce a new attribute (HbA1c measurement) based on an A1C test and the response to that result, which is defined as a change in diabetic medication. This test was performed at the time of hospital admission. We consider four groups of encounters:
@@ -128,6 +131,7 @@ encounter.data <- encounter.data %>%
   mutate(hba1c_res=ifelse((A1Cresult %in% c('Norm', '>7')) & is.na(hba1c_res), 2, hba1c_res)) %>%
   mutate(hba1c_res=ifelse((A1Cresult=='>8') & (change=='No') & is.na(hba1c_res), 3, hba1c_res)) %>%
   mutate(hba1c_res=ifelse((A1Cresult=='>8') & (change=='Ch') & is.na(hba1c_res), 4, hba1c_res))
+encounter.data$hba1c_res <- as.factor(encounter.data$hba1c_res)
 ```
 
 (Date: 18-20 September, 2020)
@@ -135,10 +139,11 @@ encounter.data <- encounter.data %>%
 Before we start analyzing our dataset, it is crucial to check on duplicates as our dataset contains multiple inpatient visits for some patients. These observations cannot be statistically independent and would create noise. We thus declare that only one encounter per patient is optimal.
 
 ```{r Finding duplicates}
+detach("package:plyr", unload = TRUE)
 duplicateCheck <- encounter.data %>%
   group_by(patient_nbr) %>%
-  summarise(count=n()) %>%
-  filter(count>1)
+  summarise(count = n()) %>%
+  filter(count > 1)
 table.dup <- data.frame('Initial number of records' = nrow(encounter.data),
                         'Number of Duplicates' = nrow(duplicateCheck),
                         'Difference in percent' = round((nrow(encounter.data) - nrow(duplicateCheck) - nrow(encounter.data)) / nrow(encounter.data) * 100, 2) )
@@ -346,6 +351,7 @@ p2 <- p2 + facet_wrap(~gender) +
     theme_bw() +
     theme(legend.position = 'none')
 
+
 # Plot all results
 grid.arrange(p1)
 grid.arrange(p2)
@@ -415,15 +421,22 @@ numeric.data <- select_if(encounter.data, is.numeric)
 # Remove encounter and patient ID
 numeric.data <- numeric.data[, -c(1, 2)]
 smaller.codebook <- codebook[c(10, 13:18, 22), 2]
+numeric.data.log <- log2(numeric.data + 0.1)
 
-p <- list()
-for ( i in c(1:length(numeric.data)) ){
-  p[[i]] <- histogram.plotter(numeric.data[, i], LETTERS[i], smaller.codebook[i])
+wrapper <- function(data){
+  p <- list()
+  for ( i in c(1:length(data)) ){
+    p[[i]] <- histogram.plotter(data[, i], LETTERS[i], smaller.codebook[i])
+  }
+  return(p)
 }
-
+numeric.normal <- wrapper(numeric.data)
+numeric.log <- wrapper(numeric.data.log)
 # Arrange in two multiplots
-do.call(grid.arrange, p[1:4])
-do.call(grid.arrange, p[5:8])
+do.call(grid.arrange, numeric.normal[1:8])
+ggsave(filename = "figures/distribution_his_1.pdf", width = 10, height = 8, plot = do.call(grid.arrange, numeric.normal[1:8]))
+do.call(grid.arrange, numeric.log[1:8])
+ggsave(filename = "figures/distribution_his_2.pdf", width = 10, height = 8, plot = do.call(grid.arrange, numeric.log[1:8]))
 ```
 Looking at the results, depicted in figures 11 and 12, shows that not all of the attributes are evenly distributed. Normalization might be necessary to correct the distributions of namely B, which makes a couple of weird spikes, E, F, and G, which are all -but B- number of visits of an encounter. We might want to introduce a new attribute, total_visits, which accounts for all visits made by one encounter. The method of normalization is still up for debate.
 
@@ -431,16 +444,17 @@ Looking at the results, depicted in figures 11 and 12, shows that not all of the
 ## Correlation - numeric attributes
 To discover any correlation between the numeric data in our dataset, we constructed a heatmap, which is depicted below. We discuss a possible correlation between age and time spent in the hospital and the potential relationship between the num_lab_procedures and num_medications.
 ```{r Heatmaps}
+library(reshape2)
 melted.data <- numeric.data %>%
   cor() %>%
   melt()
 
 # Construct the heatmap
-ggplot(data = melted.data, aes(x = Var1, y = Var2, fill = value)) + 
-  geom_tile() + 
-  labs(x = NULL, y = NULL, subtitle = '13') +
+ggplot(data = melted.data, aes(x = Var1, y = Var2, fill = value)) +
+geom_tile() + 
   scale_fill_gradient2(low = "orange", high = "red", mid = "yellow") +
   theme(axis.text.x = element_text(angle = 90))
+ggsave(filename = "figures/heatmap.pdf", plot = last_plot(), width = 10, height = 8)
 
 # Is the amount of time spent in hospital age-dependent?
 encounter.data %>%
@@ -460,13 +474,193 @@ Looking at our heatmap (shown in figure 13), we determine a strong correlation a
 
 Looking at figure 14, we observe that the age groups above [40-50) increases in total counts; consequently, the total time spent in the hospital before release also increases. We can, therefore, conclude that the time_in_hospital attribute is dependent on a patient's age. Finally, we zoom in on two attributes that had a (small) correlation depicted in figure 13. Figure 15 shows this the result of zooming in on num_medications and num_lab_procedures, the result shows that most encounters have a valuation between 15-20 medications and 40-60 amount of lab procedures. The result also shows a lot of outliers, which normalization could solve.
 
-End of the EDA.
---
+```{r PCA}
+cc.pca <- prcomp(numeric.data,
+                 center = TRUE,
+                 scale. = TRUE)
+plot(cc.pca, type = 'l', main = "Correlation PCA")
 
-# Results
+library(ggbiplot)
+ggbiplot(cc.pca, obs.scale = 1, var.scale = 1, groups = as.factor(encounter.data$time_in_hospital),
+         ellipse = TRUE, circle = TRUE, alpha = 0.5) +
+  scale_color_discrete(name = '') +
+  theme(legend.direction = 'horizontal', legend.position = 'top') +
+  xlim(-5, 20) + ylim(-10, 50)
+ggsave(filename = 'figures/pca-plot.pdf', plot = last_plot(), width = 10, height = 8, dpi = 300)
+```
 
-# Discussion and conclusion
 
+\newpage
+# A Clean Dataset
+## 28th of September
+In this section, we will remove all unnecessary attributes and instances as discussed in the EDA. Many filters and mutations have already been performed throughout the EDA, but not all have made it and seems to be scattered around - to give a more clear picture of the final, clean dataset, we perform all filtering, mutations, and relabeling that made it to the final dataset, again. 
+
+```{r Restructering and removal of abdundant data}
+# Load in the data again to perform only filtering that is needed, discussed in the EDA
+final.data <- read.table(file = 'dataset_diabetes/retrieved_data/diabetic_data.csv',
+                         sep = ',', header = TRUE)
+
+final.data <- final.data %>%
+  # Filter out every duplicate, based on patient number
+  distinct(patient_nbr, .keep_all = TRUE) %>%
+  # Relabel '?' to 'Missing'
+  mutate(race=recode(race,'?'='Missing')) %>%
+  # Remove instances with a missing labels and patients whom died in hospital
+  filter(gender != 'Unknown/Invalid' & discharge_disposition_id != 11) %>%
+  # Introduce the 'hba1c_res attribute, which is our class attribute
+  mutate(hba1c_res=ifelse((A1Cresult=='None'), '1', NA)) %>%
+  mutate(hba1c_res=ifelse((A1Cresult %in% c('Norm', '>7')) & is.na(hba1c_res), '2', hba1c_res)) %>%
+  mutate(hba1c_res=ifelse((A1Cresult=='>8') & (change=='No') & is.na(hba1c_res), '3', hba1c_res)) %>%
+  mutate(hba1c_res=ifelse((A1Cresult=='>8') & (change=='Ch') & is.na(hba1c_res), '4', hba1c_res)) %>%
+  # Introduce the new attribute icu_or_non
+  mutate(admission_type_id = ifelse(admission_type_id %in% c(1, 2, 7),
+                                    'ICU patient', 'Non-ICU patient')) %>%
+  mutate(admission_source_id = ifelse(admission_source_id %in% c(4, 7, 10, 12, 26),
+                                      'ICU patient', 'Non-ICU patient')) %>%
+  mutate(discharge_disposition_id = ifelse(discharge_disposition_id %in% c(13, 14, 19, 20, 21),
+                                           'ICU patient', 'Non-ICU patient')) %>%
+  mutate(icu_or_non = ifelse(admission_source_id == discharge_disposition_id &
+                             admission_type_id   == discharge_disposition_id,
+                             admission_source_id, 
+                             ifelse(admission_source_id == discharge_disposition_id,
+                                    admission_source_id, admission_source_id))) %>%
+  # Change the label system in attribute diag_1
+  mutate(diag_1 = case_when(diag_1 %in% c(390:459) ~ 'Circulatory',
+                            diag_1 %in% c(460:519) ~ 'Respiratory',
+                            diag_1 %in% c(520:579) ~ 'Digestive',
+                            diag_1 %in% c(240:279) ~ 'Diabetes',
+                            diag_1 %in% c(800:999) ~ 'Injury',
+                            diag_1 %in% c(710:739) ~ 'Muscoloskeletal',
+                            diag_1 %in% c(580:629) ~ 'Genitourinary',
+                            TRUE ~ 'Others')) %>%
+  # Set all character attributes to factor
+  mutate_at(vars("time_in_hospital",
+                 "hba1c_res",
+                 "icu_or_non"), funs(factor)) %>%
+  # Introduce a log2 scale on all numeric attributes
+  mutate_at(.vars = names(select_if(., is.numeric)), ~ log2(. + 0.1)) %>%
+  # Remove all redundant attributes
+  select(-c('encounter_id', 'patient_nbr', 'weight', 'payer_code', 'medical_specialty', 'diag_2', 'diag_3',
+            'admission_source_id', 'discharge_disposition_id', 'admission_type_id'))
+# Write final dataset to datafile
+
+final.data <- final.data %>%
+  relocate(time_in_hospital, .after = last_col())
+
+write.csv(final.data, "dataset_diabetes/own_data/normal_dataset.csv", row.names = FALSE)
+```
+
+\newpage
+# Determine quality metrics relevancy
+For the next part of our research, we will now predict the time spent in the hospital. Weka, a Java-based data analysis and algorithm interface, is used in this research. Its powerful interface makes it easy to work with comprehensive data modeling techniques.
+
+Weka comes with quite a few ways to evaluate results gathered from a classifier. When predicting a class variable, Weka reports of the number of true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN). These are essential values for evaluating (predicted) results after running on a classifier. Knowing/Having these four crucial numbers, we can calculate quality metrics to determine how well a classifier works on the supplied dataset. The number of quality metrics to choose from is substantial, but we only need a couple to establish whether a classifier is worth-while. We look at the speed a classification is finished, the accuracy, precision, and recall of the results, the rates of true and false positives, F1-score measurement, determine a ROC area, and construct a confusion matrix.
+
+The speed (in seconds) at which a classifier finishes its process is of interest for determining whether a classifier is useful or not. Some classifications may be slower than others. For example, a Naïve Bayes is much quicker than performing a J48 on this dataset due to the complexity of the dataset - 70.000 instances and 44 attributes to consider - and because both classifications have different goals. Therefore, a slower classification is not necessarily worse than a faster one; it depends on what we are interested in researching, and if classifications are similar in end goals. When the latter is true, and there is a considerable difference in construction speed, we can dismiss the slower one. In most cases, other metrics may have the final verdict.
+
+A confusion (or error) matrix represents the performance of an algorithm. It is a table with rows for the predicted instances, and the columns represent the instances of the actual class. The matrix reports on the number of FP, FN, TP, and TN. This representation allows for a more detailed analysis than a metric that specifies a certain value like accuracy. However, it can complicate when too many class variables need to be depicted. For example, our class attribute has 14 valuations and creates a confusion matrix of 196 (14x14) elements. It contains a lot of information; therefore, we introduce other quantity metrics that work more specific and are less complex.
+
+The number of instances correctly identified as either true positive or true negative is called the accuracy. This metric gives a peak in how "true" our classification is. It is essential to know how accurate our classification is as we want the result (prediction) to be as close to the 'true' value.  
+
+Recall (also called sensitivity or the true positive rate) reports on the number of instances correctly identified as positive out of the total actual positives, and precision (also called positive predictive value) is the number of instances correctly identified as positives of the total instances identified as positive. Both metrics give an insight into the relevance of a classification. The recall is related to the type II error rate and gives information about the completeness. In contrast, precision is more related to the type I error rate, which we are more interested in as this is about false positives. Having a high precision means good quality, which - mostly - translates to good accuracy. Precision can be a good metric in deciding whether a classification is worth-while or not.
+
+An F1-score is the mean of the precision and recall; it measures the effectiveness of identification done by the recall and precision metrics. It can range from 0 to 1 (perfect precision and recall). In other words, the F1-score conveys the balance between precision and recall. Since we want to balance between precision and recall, the F1-score is a perfect metric to do this with. 
+
+The last metric we introduce is the ROC area, which can be depicted in a ROC curve. The ROC curve is created by plotting the recall (or TPR) as a function of the false-positive rate. ROC analysis arranges a way to select optimal models and to discharge suboptimal ones.
+
+\begin{figure}[h!]
+$$\text{ACC} = \frac{\text{TP} + \text{TN}}{\text{P} + \text{N}}$$
+$$\text{PPV} = \frac{\text{TP}}{\text{TP}+\text{FP}}$$
+$$\text{TPR} = \frac{\text{TP}}{\text{P}}$$
+$$\text{F}_{1}=\frac{2\text{TP}}{2\text{TP} + \text{FP} + \text{FN}}$$
+\caption{All calculation regarding ...}
+\label{Nothing yet}
+\end{figure}
+
+\newpage
+# Machine learning algorithm performances
+We will perform a multitude of algorithms. We are interested in performing with Naïve Bayes, Simple Logistics, SVM (SMO), Nearest Neighbour (IBk), a decision tree in the form of a J48/C4.5, and Random Forest. Besides, we also include ZeroR and OneR to measure baseline performance. We only report on the weighted average in evaluating classifiers. Weka gives outcome for every class valuation (so in our case 1 to 14); we take the average sum of these outcomes, as it is better for comparison with other classifiers. The results are depicted in table [NUMBER].
+
+```{r Load results retrieved from Weka}
+library(kableExtra)
+normal.result <- read.csv("dataset_weka/normal.csv", sep = ";")
+kbl(normal.result, booktabs = T) %>%
+  kable_styling(full_width = F) %>%
+  column_spec(1, bold = T)
+```
+
+WWe now observe the results shown in table [NUMBER]. The results of all involved classifiers show a not-so-great picture; the accuracy is very low across all classifiers, ranging from a mere 16,20% for Nearest Neighbor (IBk) to a high-low result of 23,55% with Simple Logistics. This situation is not ideal as - on average - only one-fifth of the class variable is correctly predicted. This is because the class variable is positively skewed, which means low-valuations are more present than higher values. In our case, this means patients spent just a couple of days in hospital rather than, for example, more than a week. 
+
+```{r Calculating amount of instances per value, include = FALSE}
+count.data <- final.data %>%
+  group_by(time_in_hospital) %>%
+  tally()
+```
+
+There is no magic trick that would increase the accuracy without severely adjusting our data. Think about removing instances with higher valuation, reconstructing instances, or manually giving weight to high values to create a more normal-looking distribution. We already performed a cost-sensitive classifier to give more weight to values with fewer instances. Awarding even more weight could create a false image of what is really going on. Removing instances with higher values that are less covered is the last thing we want to do. Then we need to draw a line somewhere: what values can stay and which ones need to go? To illustrate the effects of removing high-value instances, we consider removing instances with a valuation ranging from 11 to 14; therefore, we would remove `r count.data %>% filter(time_in_hospital %in% c("11", "12", "13", "14")) %>% numcolwise(sum)(.)` instances, which translates to a loss of around 6%. After removal, we are left with 66.871 instances. Now that we have a new, temporary dataset, we turn to Weka once more and see if the rate of correctly classified instances has improved. The short-hand answer to that question is yes, it has improved, but not substantially enough to consider removing these instances for our final model. We performed the J48 and Simple Logistics classifiers again and observed an improvement of 1,13% compared to our first run (19,81% versus 20,94%) for J48. We noticed a similar trend for Simple Logistics. Here, the improvement is just 1,33%. The results are depicted in table [NUMBER] . Removing 6% of our instances for such little improvement in accuracy overall is not worthwhile; therefore, we can safely conclude that this method is not what we are looking for in determining a better accuracy.
+
+```{r Inserting results with less instances}
+diff.instances <- read.csv("dataset_weka/diff_instances.csv", sep = ";")
+kbl(diff.instances, booktabs = T) %>%
+  kable_styling(full_width = F) %>%
+  column_spec(1, bold = T)
+```
+
+Another option to improve accuracy could be a relabeling of the attribute. This method has the upside of retaining all instances. The downside of this method is that we create bigger data groups, thereby removing the chance of exactly determining how many days were spent in the hospital. While we cannot determine exactly how many days a patient spent in the hospital, we can separate visits based on classification, such as "short" or "average". So classification is still possible but is less specific. This is the price to pay if we want a more accurate model. We considered a relabeling with four different valuations: 
+\begin{enumerate}
+  \item Time spent in hospital is between one and three days;
+  \item Time spent in hospital is between four and six days; 
+  \item Time spent in hospital is between seven and nine days; and
+  \item Time spent in hospital is equal to or more than ten days. 
+\end{enumerate}
+
+In the next code section, we mutate the time_in_hospital attribute, as described above. We also show the implications of relabeling in figures ... and ... . As we can see, the data is still very much positively skewed but has simply fewer classes. Therefore, some classes are relatively big (1 with > 30.000 instances) or small (4 with ~ 5.000 instances). (more?)
+
+```{r Creating new labels}
+final.data.label <- final.data %>%
+  mutate(time_in_hospital = case_when(time_in_hospital %in% c('1', '2', '3') ~ '1',
+                                      time_in_hospital %in% c('4', '5', '6') ~ '2',
+                                      time_in_hospital %in% c('7', '8', '9') ~ '3',
+                                      TRUE ~ '4')) %>%
+  # Added 13 of October: Reshape data so that class variable is the last column
+  # We did this manually with using the Explorer, but now we use the Experimenter,
+  # the only way to appoint a class variable is having it be the last column.
+  relocate(time_in_hospital, .after = last_col())
+
+# Add legends and introduce a two-in-one plot
+ggplot() +
+  geom_bar(mapping = aes(x=final.data$time_in_hospital)) +
+  ggtitle("Time in hospital (1-14 days)") +
+  xlab("Days")
+
+ggplot() +
+  geom_bar(mapping = aes(x=final.data.label$time_in_hospital)) +
+  ggtitle("Time in hospital (four classifications)") +
+  xlab("Classification")
+  
+write.csv(final.data.label, "dataset_diabetes/own_data/relabeled.csv", row.names = FALSE)
+```
+
+Now that we have a new dataset, we turn to Weka once more to analyze the new dataset. The results of this are shown in table [NUMBER]. Having obtained results regarding both datasets, we can determine the differences. As expected, accuracy rose across the broad of classifiers; most experienced an increase of at least 30 percentage points, except for IBk, which rose 26 percentage points. IBk already had the least sufficient outcome in previous Weka runs, so logically we would not have expected it to become best-performing. When considering taking a final dataset to the next stage in our research, we must weigh if a less specific attribute is worth having better accuracy (and for every other metric, for that matter). As we already discussed, having a sense of the duration spent in the hospital is still present. Additionally, we can now predict more accurately by a large margin. Even now, classifiers only predict correctly half of the time, and is even worse when we do not relabel. In contrast, if we come put with a way to produce more sufficient outcomes with the initial dataset, we can always switch back. It seems that the relabeled dataset looks the most promising right now, and therefore we will continue our analysis with this dataset. However, we will report on the initial dataset in the next section as well. 
+
+Next up is determining which classifiers are most worthwhile regarding our research goals. As stated earlier, accuracy and precision are the most important metrics. The best option seems to be Simple Logistics with an accuracy of 56,53% and a precision of 0,523 - both are best-performing in their category. Deciding on a runner-up appears more challenging as J48 and Naïve Bayes both perform well. J48 has better accuracy (52,76%) than Naïve Bayes (51,28%), but Bayes outperforms J48 in almost every other aspect. This sometimes happens in far bigger margins than their difference in accuracy. For example, the dissimilarity for the ROC area is 0,071. To conclude, both classifiers seem as likely candidates for further analysis, and makes it is hard to decide which is the best. For that reason, in addition to taking Simple Logistics, both Naïve Bayes and J48 will be considered in further analysis as well. 
+
+```{r Results relabeling}
+label.result <- read.csv("dataset_weka/labelling.csv", sep = ";")
+kbl(label.result, booktabs = T) %>%
+  kable_styling(full_width = F) %>%
+  column_spec(1, bold = T)
+```
+
+# Optimizing our classifiers
+To determine the best possible algorithm, we need to play with some parameter settings of our chosen algorithms. To accomplish this, we want to use Weka's Experimenter mode. This mode allows us to explore multiple parameter settings and rule which are the most optimal. In other words, we want to crick up the accuracy of all algorithms involved. 
+
+
+
+
+# Exploring meta-learners
+
+\newpage
 # References
 \begin{thebibliography}{9}
 \bibitem{OrgData}
@@ -474,22 +668,3 @@ Beata Strack, Jonathan P. DeShazo, Chris Gennings, Juan L. Olmo, Sebastian Ventu
 \bibitem{ICD}
 Centers for Disease Control and Prevention, National Center for Health Statistics, \textit{ICD-9}, \url{https://www.cdc.gov/nchs/icd/icd9.htm}, November 6, 2015.
 \end{thebibliography}
-
-\newpage
-\newpage
-\newpage
-# Week 3: A Clean Dataset
-```{r Restructering and removal of abdundant data, eval=FALSE}
-library(plyr)
-# Removing the weight and payer_code attributes
-encounter.data <- encounter.data[, !names(encounter.data) %in% c('weight', 'payer_code')]
-# Relabeling all '?' values to 'Missing or unknown' and 'Missing', respectively
-encounter.data$medical_specialty <- revalue(encounter.data$medical_specialty, c('?'='Missing or unknown'))
-encounter.data$race <- revalue(encounter.data$race, c('?'='Missing'))
-
-# Now or on a later moment in the visualization process?
-# Explain
-encounter.data <- encounter.data %>%
-  distinct(patient_nbr, .keep_all = T) %>%
-  filter(!(discharge_disposition_id %in% c(11, 13, 14, 19, 20, 21)))
-```
