@@ -123,7 +123,7 @@ In the next section, we will introduce a new attribute (HbA1c measurement) based
   \item HbA1c performed and in normal range;
   \item HbA1c performed and the result is greater than 8% with no change in diabetic medication; and
   \item HbA1c performed, result is greater than 8%, and diabetic mediation was changed.
-\end{enumerate}  
+\end{enumerate}
 
 ```{r Introducing a new attribute}
 encounter.data <- encounter.data %>%
@@ -132,6 +132,16 @@ encounter.data <- encounter.data %>%
   mutate(hba1c_res=ifelse((A1Cresult=='>8') & (change=='No') & is.na(hba1c_res), 3, hba1c_res)) %>%
   mutate(hba1c_res=ifelse((A1Cresult=='>8') & (change=='Ch') & is.na(hba1c_res), 4, hba1c_res))
 encounter.data$hba1c_res <- as.factor(encounter.data$hba1c_res)
+```
+
+# Added 24-10
+We have a lot of near-zero variance variables comprised in our dataset, for example the attribute examide consists of entirely one level with no missing values. For that reason, it is a zero-variance attribute. This attribute is not informative and will not help in predicting an outcome. All other (near) zero-variance attributes were removed as they would increase computing times if kept. We are talking about the following eighteen attributes:
+
+```{r}
+library(caret)
+removal.names <- nearZeroVar(encounter.data, names = T)
+encounter.data <- encounter.data %>%
+  select(-c(removal.names))
 ```
 
 (Date: 18-20 September, 2020)
@@ -541,26 +551,24 @@ final.data <- final.data %>%
   mutate_at(.vars = names(select_if(., is.numeric)), ~ log2(. + 0.1)) %>%
   # Remove all redundant attributes
   select(-c('encounter_id', 'patient_nbr', 'weight', 'payer_code', 'medical_specialty', 'diag_2', 'diag_3',
-            'admission_source_id', 'discharge_disposition_id', 'admission_type_id'))
-# Write final dataset to datafile
-
-final.data <- final.data %>%
+            'admission_source_id', 'discharge_disposition_id', 'admission_type_id', removal.names)) %>%
   relocate(time_in_hospital, .after = last_col())
 
+# Write final dataset to datafile
 write.csv(final.data, "dataset_diabetes/own_data/normal_dataset.csv", row.names = FALSE)
 ```
 
 \newpage
 # Determine quality metrics relevancy
-For the next part of our research, we will now predict the time spent in the hospital. Weka, a Java-based data analysis and algorithm interface, is used in this research. Its powerful interface makes it easy to work with comprehensive data modeling techniques.
+For the next part of our research, we will work on a way to predict the time spent in the hospital. Weka, a Java-based data analysis and algorithm interface, is used in this research. Its powerful interface makes it easy to work with comprehensive data modeling techniques.
 
-Weka comes with quite a few ways to evaluate results gathered from a classifier. When predicting a class variable, Weka reports of the number of true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN). These are essential values for evaluating (predicted) results after running on a classifier. Knowing/Having these four crucial numbers, we can calculate quality metrics to determine how well a classifier works on the supplied dataset. The number of quality metrics to choose from is substantial, but we only need a couple to establish whether a classifier is worth-while. We look at the speed a classification is finished, the accuracy, precision, and recall of the results, the rates of true and false positives, F1-score measurement, determine a ROC area, and construct a confusion matrix.
+Weka comes with quite a few ways to evaluate results gathered from a classifier. When predicting a class variable, Weka reports of the number of true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN). These are essential values for evaluating (predicted) results after running on a classifier. Knowing these four crucial numbers, we can calculate quality metrics to determine how well a classifier works on the supplied dataset. The number of quality metrics to choose from is substantial, but we only need a couple to establish whether a classifier is worth-while. We look at the speed a classification is finished, the accuracy, precision, and recall of the results, the rates of true and false positives, F1-score measurement, determine a ROC area, and construct a confusion matrix.
 
 The speed (in seconds) at which a classifier finishes its process is of interest for determining whether a classifier is useful or not. Some classifications may be slower than others. For example, a Naïve Bayes is much quicker than performing a J48 on this dataset due to the complexity of the dataset - 70.000 instances and 44 attributes to consider - and because both classifications have different goals. Therefore, a slower classification is not necessarily worse than a faster one; it depends on what we are interested in researching, and if classifications are similar in end goals. When the latter is true, and there is a considerable difference in construction speed, we can dismiss the slower one. In most cases, other metrics may have the final verdict.
 
 A confusion (or error) matrix represents the performance of an algorithm. It is a table with rows for the predicted instances, and the columns represent the instances of the actual class. The matrix reports on the number of FP, FN, TP, and TN. This representation allows for a more detailed analysis than a metric that specifies a certain value like accuracy. However, it can complicate when too many class variables need to be depicted. For example, our class attribute has 14 valuations and creates a confusion matrix of 196 (14x14) elements. It contains a lot of information; therefore, we introduce other quantity metrics that work more specific and are less complex.
 
-The number of instances correctly identified as either true positive or true negative is called the accuracy. This metric gives a peak in how "true" our classification is. It is essential to know how accurate our classification is as we want the result (prediction) to be as close to the 'true' value.  
+The number of instances correctly identified as either true positive or true negative is called the accuracy. This metric gives a peak in how "true" our classification is, or in other words, how many predictions are right. It is essential to know how accurate our classification is as we want the result (prediction) to be as close to the 'true' value.  
 
 Recall (also called sensitivity or the true positive rate) reports on the number of instances correctly identified as positive out of the total actual positives, and precision (also called positive predictive value) is the number of instances correctly identified as positives of the total instances identified as positive. Both metrics give an insight into the relevance of a classification. The recall is related to the type II error rate and gives information about the completeness. In contrast, precision is more related to the type I error rate, which we are more interested in as this is about false positives. Having a high precision means good quality, which - mostly - translates to good accuracy. Precision can be a good metric in deciding whether a classification is worth-while or not.
 
@@ -579,22 +587,32 @@ $$\text{F}_{1}=\frac{2\text{TP}}{2\text{TP} + \text{FP} + \text{FN}}$$
 
 \newpage
 # Machine learning algorithm performances
-We will perform a multitude of algorithms. We are interested in performing with Naïve Bayes, Simple Logistics, SVM (SMO), Nearest Neighbour (IBk), a decision tree in the form of a J48/C4.5, and Random Forest. Besides, we also include ZeroR and OneR to measure baseline performance. We only report on the weighted average in evaluating classifiers. Weka gives outcome for every class valuation (so in our case 1 to 14); we take the average sum of these outcomes, as it is better for comparison with other classifiers. The results are depicted in table [NUMBER].
+We will perform a multitude of algorithms. We are interested in performing with Naïve Bayes, Simple Logistics, Nearest Neighbour (IBk), a decision tree in the form of a J48/C4.5, and a Random Tree. Besides, we also include ZeroR and OneR to measure baseline performance. Weka gives outcome for every class valuation (so in our case 1 to 14); we take the average sum of these outcomes, as it is better for comparison with other classifiers. The results are depicted in table [NUMBER].
 
 ```{r Load results retrieved from Weka}
 library(kableExtra)
-normal.result <- read.csv("dataset_weka/normal.csv", sep = ";")
+normal.result <- read.csv("datasets/dataset_weka/normal.csv", sep = ";")
 kbl(normal.result, booktabs = T) %>%
   kable_styling(full_width = F) %>%
   column_spec(1, bold = T)
 ```
 
-WWe now observe the results shown in table [NUMBER]. The results of all involved classifiers show a not-so-great picture; the accuracy is very low across all classifiers, ranging from a mere 16,20% for Nearest Neighbor (IBk) to a high-low result of 23,55% with Simple Logistics. This situation is not ideal as - on average - only one-fifth of the class variable is correctly predicted. This is because the class variable is positively skewed, which means low-valuations are more present than higher values. In our case, this means patients spent just a couple of days in hospital rather than, for example, more than a week. 
+We now observe the results shown in table [NUMBER]. The results of all involved classifiers show a not-so-great picture; the accuracy is very low across all classifiers, ranging from a mere 16,20% for Nearest Neighbor (IBk) to a high-low result of 23,55% with Simple Logistics. This situation is not ideal as - on average - only one-fifth of the class variable is correctly predicted. This is because the class variable is positively skewed, which means low-valuations are more present than higher values. In our case, this means patients spent just a couple of days in hospital rather than, for example, more than a week. 
 
 ```{r Calculating amount of instances per value, include = FALSE}
 count.data <- final.data %>%
   group_by(time_in_hospital) %>%
   tally()
+
+# Make a table out of our count data
+kbl(count.data, booktabs = T) %>%
+  kable_styling(full_width = F) %>%
+  column_spec(1, bold = T)
+
+instance.data <- final.data %>%
+  filter(!time_in_hospital %in% c(11, 12, 13, 14))
+
+write.csv(instance.data, "dataset_diabetes/own_data/less_instances.csv", row.names = FALSE)
 ```
 
 There is no magic trick that would increase the accuracy without severely adjusting our data. Think about removing instances with higher valuation, reconstructing instances, or manually giving weight to high values to create a more normal-looking distribution. We already performed a cost-sensitive classifier to give more weight to values with fewer instances. Awarding even more weight could create a false image of what is really going on. Removing instances with higher values that are less covered is the last thing we want to do. Then we need to draw a line somewhere: what values can stay and which ones need to go? To illustrate the effects of removing high-value instances, we consider removing instances with a valuation ranging from 11 to 14; therefore, we would remove `r count.data %>% filter(time_in_hospital %in% c("11", "12", "13", "14")) %>% numcolwise(sum)(.)` instances, which translates to a loss of around 6%. After removal, we are left with 66.871 instances. Now that we have a new, temporary dataset, we turn to Weka once more and see if the rate of correctly classified instances has improved. The short-hand answer to that question is yes, it has improved, but not substantially enough to consider removing these instances for our final model. We performed the J48 and Simple Logistics classifiers again and observed an improvement of 1,13% compared to our first run (19,81% versus 20,94%) for J48. We noticed a similar trend for Simple Logistics. Here, the improvement is just 1,33%. The results are depicted in table [NUMBER] . Removing 6% of our instances for such little improvement in accuracy overall is not worthwhile; therefore, we can safely conclude that this method is not what we are looking for in determining a better accuracy.
@@ -624,7 +642,7 @@ final.data.label <- final.data %>%
                                       TRUE ~ '4')) %>%
   # Added 13 of October: Reshape data so that class variable is the last column
   # We did this manually with using the Explorer, but now we use the Experimenter,
-  # the only way to appoint a class variable is having it be the last column.
+  # and the only way to appoint a class variable is having it be the last column.
   relocate(time_in_hospital, .after = last_col())
 
 # Add legends and introduce a two-in-one plot
@@ -646,25 +664,78 @@ Now that we have a new dataset, we turn to Weka once more to analyze the new dat
 Next up is determining which classifiers are most worthwhile regarding our research goals. As stated earlier, accuracy and precision are the most important metrics. The best option seems to be Simple Logistics with an accuracy of 56,53% and a precision of 0,523 - both are best-performing in their category. Deciding on a runner-up appears more challenging as J48 and Naïve Bayes both perform well. J48 has better accuracy (52,76%) than Naïve Bayes (51,28%), but Bayes outperforms J48 in almost every other aspect. This sometimes happens in far bigger margins than their difference in accuracy. For example, the dissimilarity for the ROC area is 0,071. To conclude, both classifiers seem as likely candidates for further analysis, and makes it is hard to decide which is the best. For that reason, in addition to taking Simple Logistics, both Naïve Bayes and J48 will be considered in further analysis as well. 
 
 ```{r Results relabeling}
-label.result <- read.csv("dataset_weka/labelling.csv", sep = ";")
+label.result <- read.csv("datasets/dataset_weka/labelling.csv", sep = ";")
 kbl(label.result, booktabs = T) %>%
   kable_styling(full_width = F) %>%
   column_spec(1, bold = T)
 ```
-
 # Optimizing our classifiers
-To determine the best possible algorithm, we need to play with some parameter settings of our chosen algorithms. To accomplish this, we want to use Weka's Experimenter mode. This mode allows us to explore multiple parameter settings and rule which are the most optimal. In other words, we want to crick up the accuracy of all algorithms involved. 
+To determine the best possible algorithm, we need to play with some parameter settings of our chosen algorithms. To accomplish this, we want to use Weka's Experimenter mode. This mode allows us to explore multiple parameter settings and rule which are the most optimal. In other words, we want to crick up the accuracy of all algorithms involved. We will do this by exploring different meta-learners. Meta
 
 
+## Selecting attributes
+Weka contains a meta-learner that is called 'AttributeSelectedClassifier'. This meta-learner gives us the opportunity to evaluate if a given classifier performs better without certain attributes. It does this in two steps: 1) dimensionality reduction through attribute selection and 2) passing on to a given classifier. \cite{Weka-AttribSelectClass} We have the option to rank attributes hinged on their performance in regard to the accuracy. We are going to look at four different ... of this classifier to research if we are better of without any of our remaining attributes. These four different are 1) ... 2) ... 3) ... and 4) ...
+
+## Exploring meta-learners
+
+## ROC curve
+```{r}
+## TEMP
+roc_data <- read.table("~/Desktop/roctest.arff", 
+                   sep = ",", 
+                   comment.char = "@")
+names(roc_data) <- c("Instance_number", 
+                 "True_Positives",
+                 "False_Negatives",
+                 "False_Positives",
+                 "True_Negatives",
+                 "False_Positive_Rate",
+                 "True_Positive_Rate",
+                 "Precision",
+                 "Recall",
+                 "Fallout",
+                 "FMeasure",
+                 "Sample_Size",
+                 "Lift",
+                 "Threshold")
+
+head(roc_data)
+
+library(ggpubr)
+colors <- c(classifier = "red", threshold = "blue")
+plt <- ggplot(data = roc_data,
+       mapping = aes(x = True_Positive_Rate, y = False_Positive_Rate)) +
+    geom_point(mapping = aes(color = "classifier")) +
+    geom_abline(aes(color = "threshold", 
+                    slope = 1, 
+                    intercept = 0)) + 
+    scale_color_manual(values = colors) +
+    xlab("True Positive Rate") +
+    ylab("False Positive Rate") +
+    #theme_minimal() +
+    theme_pubr() +
+    theme(legend.title = element_blank())
+print(plt)
+```
 
 
-# Exploring meta-learners
+# Settings used
+(relabeled)
+# meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W rules.ZeroR
+#(1) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W rules.OneR -- -B 6' -110658209263002404
+#(2) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W trees.J48 -- -C 0.25 -M 2' -110658209263002404
+#(3) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W bayes.NaiveBayes' -110658209263002404
+#(4) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W functions.SimpleLogistic -- -I 0 -M 500 -H 50 -W 0.0' -110658209263002404
+#(5) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W lazy.IBk -- -K 1 -W 0 -A \"weka.core.neighboursearch.LinearNNSearch -A \\\"weka.core.EuclideanDistance -R first-last\\\"\"' -110658209263002404
+#(6) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W trees.RandomTree -- -K 0 -M 1.0 -V 0.001 -S 1' -110658209263002404
 
 \newpage
 # References
 \begin{thebibliography}{9}
 \bibitem{OrgData}
-Beata Strack, Jonathan P. DeShazo, Chris Gennings, Juan L. Olmo, Sebastian Ventura, Krzysztof J. Cios, and John N. Clore, “Impact of HbA1c Measurement on Hospital Readmission Rates: Analysis of 70,000 Clinical Database Patient Records,” BioMed Research International, vol. 2014, Article ID 781670, 11 pages, 2014. DOI: \url{https://doi.org/10.1155/2014/781670}
+Beata Strack, Jonathan P. DeShazo, Chris Gennings, Juan L. Olmo, Sebastian Ventura, Krzysztof J. Cios, and John N. Clore, \textit{Impact of HbA1c Measurement on Hospital Readmission Rates: Analysis of 70,000 Clinical Database Patient Records}, BioMed Research International, vol. 2014, Article ID 781670, 11 pages, 2014. DOI: \url{https://doi.org/10.1155/2014/781670}
 \bibitem{ICD}
 Centers for Disease Control and Prevention, National Center for Health Statistics, \textit{ICD-9}, \url{https://www.cdc.gov/nchs/icd/icd9.htm}, November 6, 2015.
+\bibitem{Weka-AttribSelectClass}
+Hall, M, \textit{Class AttributeSelectedClassifier}, \url{https://weka.sourceforge.io/doc.dev/weka/classifiers/meta/AttributeSelectedClassifier.html}.
 \end{thebibliography}
