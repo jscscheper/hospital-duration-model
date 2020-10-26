@@ -63,10 +63,10 @@ library(foreign)
 library(xtable)
 
 # Load in used data
-encounter.data <- read.table(file = 'dataset_diabetes/retrieved_data/diabetic_data.csv',
+encounter.data <- read.table(file = 'datasets/data_diabetes_retrieved/diabetic_data.csv',
                                               sep = ',', header = TRUE)
 
-codebook <- read.csv(file = 'codebook.csv', sep = ';',
+codebook <- read.csv(file = 'misc/codebook.csv', sep = ';',
                        header = T)
 ```
 
@@ -507,7 +507,7 @@ In this section, we will remove all unnecessary attributes and instances as disc
 
 ```{r Restructering and removal of abdundant data}
 # Load in the data again to perform only filtering that is needed, discussed in the EDA
-final.data <- read.table(file = 'dataset_diabetes/retrieved_data/diabetic_data.csv',
+final.data <- read.table(file = 'datasets/data_diabetes_retrieved/diabetic_data.csv',
                          sep = ',', header = TRUE)
 
 final.data <- final.data %>%
@@ -555,7 +555,7 @@ final.data <- final.data %>%
   relocate(time_in_hospital, .after = last_col())
 
 # Write final dataset to datafile
-write.csv(final.data, "dataset_diabetes/own_data/normal_dataset.csv", row.names = FALSE)
+write.csv(final.data, "datasets/base_datasets/normal_dataset.csv", row.names = FALSE)
 ```
 
 \newpage
@@ -591,7 +591,7 @@ We will perform a multitude of algorithms. We are interested in performing with 
 
 ```{r Load results retrieved from Weka}
 library(kableExtra)
-normal.result <- read.csv("datasets/dataset_weka/normal.csv", sep = ";")
+normal.result <- read.csv("datasets/dataset_results_weka/base/normal.csv", sep = ";")
 kbl(normal.result, booktabs = T) %>%
   kable_styling(full_width = F) %>%
   column_spec(1, bold = T)
@@ -612,13 +612,13 @@ kbl(count.data, booktabs = T) %>%
 instance.data <- final.data %>%
   filter(!time_in_hospital %in% c(11, 12, 13, 14))
 
-write.csv(instance.data, "dataset_diabetes/own_data/less_instances.csv", row.names = FALSE)
+write.csv(instance.data, "datasets/base_datasets/less_instances.csv", row.names = FALSE)
 ```
 
 There is no magic trick that would increase the accuracy without severely adjusting our data. Think about removing instances with higher valuation, reconstructing instances, or manually giving weight to high values to create a more normal-looking distribution. We already performed a cost-sensitive classifier to give more weight to values with fewer instances. Awarding even more weight could create a false image of what is really going on. Removing instances with higher values that are less covered is the last thing we want to do. Then we need to draw a line somewhere: what values can stay and which ones need to go? To illustrate the effects of removing high-value instances, we consider removing instances with a valuation ranging from 11 to 14; therefore, we would remove `r count.data %>% filter(time_in_hospital %in% c("11", "12", "13", "14")) %>% numcolwise(sum)(.)` instances, which translates to a loss of around 6%. After removal, we are left with 66.871 instances. Now that we have a new, temporary dataset, we turn to Weka once more and see if the rate of correctly classified instances has improved. The short-hand answer to that question is yes, it has improved, but not substantially enough to consider removing these instances for our final model. We performed the J48 and Simple Logistics classifiers again and observed an improvement of 1,13% compared to our first run (19,81% versus 20,94%) for J48. We noticed a similar trend for Simple Logistics. Here, the improvement is just 1,33%. The results are depicted in table [NUMBER] . Removing 6% of our instances for such little improvement in accuracy overall is not worthwhile; therefore, we can safely conclude that this method is not what we are looking for in determining a better accuracy.
 
 ```{r Inserting results with less instances}
-diff.instances <- read.csv("dataset_weka/diff_instances.csv", sep = ";")
+diff.instances <- read.csv("datasets/dataset_results_weka/base/less_instances.csv", sep = ";")
 kbl(diff.instances, booktabs = T) %>%
   kable_styling(full_width = F) %>%
   column_spec(1, bold = T)
@@ -656,7 +656,7 @@ ggplot() +
   ggtitle("Time in hospital (four classifications)") +
   xlab("Classification")
   
-write.csv(final.data.label, "dataset_diabetes/own_data/relabeled.csv", row.names = FALSE)
+write.csv(final.data.label, "datasets/base_datasets/relabeled.csv", row.names = FALSE)
 ```
 
 Now that we have a new dataset, we turn to Weka once more to analyze the new dataset. The results of this are shown in table [NUMBER]. Having obtained results regarding both datasets, we can determine the differences. As expected, accuracy rose across the broad of classifiers; most experienced an increase of at least 30 percentage points, except for IBk, which rose 26 percentage points. IBk already had the least sufficient outcome in previous Weka runs, so logically we would not have expected it to become best-performing. When considering taking a final dataset to the next stage in our research, we must weigh if a less specific attribute is worth having better accuracy (and for every other metric, for that matter). As we already discussed, having a sense of the duration spent in the hospital is still present. Additionally, we can now predict more accurately by a large margin. Even now, classifiers only predict correctly half of the time, and is even worse when we do not relabel. In contrast, if we come put with a way to produce more sufficient outcomes with the initial dataset, we can always switch back. It seems that the relabeled dataset looks the most promising right now, and therefore we will continue our analysis with this dataset. However, we will report on the initial dataset in the next section as well. 
@@ -664,19 +664,42 @@ Now that we have a new dataset, we turn to Weka once more to analyze the new dat
 Next up is determining which classifiers are most worthwhile regarding our research goals. As stated earlier, accuracy and precision are the most important metrics. The best option seems to be Simple Logistics with an accuracy of 56,53% and a precision of 0,523 - both are best-performing in their category. Deciding on a runner-up appears more challenging as J48 and Naïve Bayes both perform well. J48 has better accuracy (52,76%) than Naïve Bayes (51,28%), but Bayes outperforms J48 in almost every other aspect. This sometimes happens in far bigger margins than their difference in accuracy. For example, the dissimilarity for the ROC area is 0,071. To conclude, both classifiers seem as likely candidates for further analysis, and makes it is hard to decide which is the best. For that reason, in addition to taking Simple Logistics, both Naïve Bayes and J48 will be considered in further analysis as well. 
 
 ```{r Results relabeling}
-label.result <- read.csv("datasets/dataset_weka/labelling.csv", sep = ";")
+label.result <- read.csv("datasets/dataset_results_weka/base/relabeled.csv", sep = ";")
 kbl(label.result, booktabs = T) %>%
   kable_styling(full_width = F) %>%
   column_spec(1, bold = T)
 ```
+
 # Optimizing our classifiers
-To determine the best possible algorithm, we need to play with some parameter settings of our chosen algorithms. To accomplish this, we want to use Weka's Experimenter mode. This mode allows us to explore multiple parameter settings and rule which are the most optimal. In other words, we want to crick up the accuracy of all algorithms involved. We will do this by exploring different meta-learners. Meta
+To determine the best possible algorithm, we need to play with some parameter settings of our chosen algorithms. To accomplish this, we want to use Weka's Experimenter mode. This mode allows us to explore multiple parameter settings and rule which are the most optimal. In other words, we want to crick up the accuracy of all algorithms involved. We will do this by exploring different meta-learners. The meta-learner CvParameterSelection was performed on J48/C4.5 and Simple Logistics to find the optimal parameter sets. We present the results in the sections below.
+
+## J.48/C4.5
+Firstly, we look at the parameter settings of the tree algorithm J48/C4.5. Here we have to deal with two parameters: the confidence factor parameter (C) and the minimal number of objects (M). The C value determines the amount of pruning performed; a small value corresponds to heavy pruning, whereas a large one to little pruning. The default is set to 0.25, and we will let the algorithm test with values ranging from 0.1 up to 0.5 in steps of 10. We set the limit to 0.5 as above it will cause little to no pruning. \cite{Pruning-J48} Parameter M's default is set to 2, which means that the minimum instances per leaf guarantees that at each split, at least 2 of the branches will have the minimum number of instances. Increasing this values means that leaves become bigger. We test with a range from 2 to 10 in steps of 1. As we do not have a test- and trainingset, we use cross-validation again.
+
+```{r Results J48 optimalization}
+j48.results <- read.csv("datasets/dataset_results_weka/optimalization/j48-normal.csv", sep = ';')
+kbl(j48.results, booktabs = T) %>%
+  kable_styling(full_width = F) %>%
+  column_spec(1, bold = T)
+```
+
+[DISCUSS RESULTS]
+
+## Simple Logistics
+[INTRODUCTION]
 
 
-## Selecting attributes
-Weka contains a meta-learner that is called 'AttributeSelectedClassifier'. This meta-learner gives us the opportunity to evaluate if a given classifier performs better without certain attributes. It does this in two steps: 1) dimensionality reduction through attribute selection and 2) passing on to a given classifier. \cite{Weka-AttribSelectClass} We have the option to rank attributes hinged on their performance in regard to the accuracy. We are going to look at four different ... of this classifier to research if we are better of without any of our remaining attributes. These four different are 1) ... 2) ... 3) ... and 4) ...
+```{r Results SL optimalization}
+sl.results <- read.csv()
+```
 
-## Exploring meta-learners
+[DISCUSS RESULTS]
+
+# Selecting attributes
+Weka contains a meta-learner that is called 'AttributeSelectedClassifier'. This meta-learner gives us the opportunity to evaluate if a given classifier performs better without certain attributes. It does this in two steps: 1) dimensionality reduction through attribute selection and 2) passing on to a given classifier. \cite{Weka-AttribSelectClass} We have the option to rank attributes hinged on their performance in regard to the accuracy. We are going to look at two different evaluators of this classifier to research if we are better of without any of our remaining attributes. These four different are 1) ... ; and 2) ... .
+
+# Exploring other meta-learners
+Besides the meta learners we already performed and their results discussed, we like to perform another set of meta learners. These meta learners focus on ... . In this section, we will discuss the results of the classifiers Stacking, Bagging, and Boosting.
 
 ## ROC curve
 ```{r}
@@ -720,6 +743,25 @@ print(plt)
 
 
 # Settings used
+(normal)
+#1) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W rules.ZeroR' -110658209263002404
+#(2) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W rules.OneR -- -B 6' -110658209263002404
+#(3) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W bayes.NaiveBayes' -110658209263002404
+#(4) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W functions.SimpleLogistic -- -I 0 -M 500 -H 50 -W 0.0' -110658209263002404
+#(5) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W lazy.IBk -- -K 1 -W 0 -A \"weka.core.neighboursearch.LinearNNSearch -A \\\"weka.core.EuclideanDistance -R first-last\\\"\"' -110658209263002404
+#(6) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W trees.J48 -- -C 0.25 -M 2' -110658209263002404
+#(7) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W trees.RandomTree -- -K 0 -M 1.0 -V 0.001 -S 1' -110658209263002404
+
+(remove_instances)
+#1) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W trees.RandomTree -- -K 0 -M 1.0 -V 0.001 -S 1' -110658209263002404
+#(2) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W functions.SimpleLogistic -- -I 0 -M 500 -H 50 -W 0.0' -110658209263002404
+#(3) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W bayes.NaiveBayes' -110658209263002404
+#(4) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W rules.OneR -- -B 6' -110658209263002404
+#(5) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W rules.ZeroR' -110658209263002404
+#(6) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W lazy.IBk -- -K 1 -W 0 -A \"weka.core.neighboursearch.LinearNNSearch -A \\\"weka.core.EuclideanDistance -R first-last\\\"\"' -110658209263002404
+#(7) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W trees.J48 -- -C 0.25 -M 2' -110658209263002404
+
+
 (relabeled)
 # meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W rules.ZeroR
 #(1) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W rules.OneR -- -B 6' -110658209263002404
@@ -738,4 +780,6 @@ Beata Strack, Jonathan P. DeShazo, Chris Gennings, Juan L. Olmo, Sebastian Ventu
 Centers for Disease Control and Prevention, National Center for Health Statistics, \textit{ICD-9}, \url{https://www.cdc.gov/nchs/icd/icd9.htm}, November 6, 2015.
 \bibitem{Weka-AttribSelectClass}
 Hall, M, \textit{Class AttributeSelectedClassifier}, \url{https://weka.sourceforge.io/doc.dev/weka/classifiers/meta/AttributeSelectedClassifier.html}.
+\bibitem{Pruning-J48}
+Stiglic, G., Kocbek S., Pernek I., Kokol P., \textit{Comprehensive Decision Tree Models in Bioinformatics}. DOI: \url{10.1371/journal.pone.0033812}
 \end{thebibliography}

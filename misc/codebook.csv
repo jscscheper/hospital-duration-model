@@ -1,0 +1,50 @@
+Name;Full name;Data type;Description and valuation
+encounter_id;Encounter ID;Int;An unique number to identify an encounter.
+patient_nbr;Patient number;Int;An unique number to identify a patient.
+race;Race;Factor;The race of a patient with values: Caucasian, Asian, African American, Hispanic, and other.
+gender;Gender;Factor;The gender of a patient with values: male, female, and unknown/invalid.
+age;Age;Factor;The age of a patient, grouped in ten-year intervals, for example: [0, 10) and [90, 100).
+weight;Weight;Factor;Weight in pounds.
+adminsion_type_id;Admission type;Int;An integer identifying what a patient's admission type is, which corresponds with a method, for example:1 - emergency and 2 - urgent. Valuation has nine distinct values.
+discharge_disposition_id;Discharge disposition;Int;An integer identifying how a patient was discharged, which corresponds with a method, for example: 1 - discharged to home and 2 - expired. Valuation has 29 distinct values.
+admission_source_id;Admission source;Int;An integer identifying how a patient was admitted to hospital, which corresponds with a method, for example: 1 - physician referral and 2 - emergency room. Valuation has 21 distinct values.
+time_in_hospital;Time in hospital;Int;Integer number of days between admission and discharge.
+payer_code;Payer code;Factor;An integer identifying how a patient is paying, which corresponds with a method, for example: 1 - Blue Cross/Blue Shield and 2 - Medicare. Valuatoon has 23 distinct values.
+medical_specialty;Medical specialty;Factor;An integer identifying the specialty of the admitting physician, which corresponds with a method, for example: 1 - cardiology and 2 - internal medicine. Valuation has 84 distinct values.
+num_lab_procedures;Number of lab procedures;Int;Number of lab tests performed during the encounter.
+num_procedures;Number of procedures;Int;Number of procedures, other than lab tests, performed during the encounter.
+num_medications;Number of medications;Int;Number of distinct generic names administered during the encounter.
+number_outpatient;Number of outpatient visits;Int;Number of outpatient visits of the patient in the year preceding the encounter.
+number_emergency;Number of emergency visits;Int;Number of emergency visits of the patient in the year preceding the encounter.
+number_inpatient;Number of inpatient visits;Int;Number of inpatient visits of the patient in the year preceding the encounter.
+diag_1;Diagnosis 1;Factor;The primary diagnosis and is coded as first three digits of ICD9, with 848 distinct values.
+diag_2;Diagnosis 2;Factor;The secondary diagnosis and is coded as first three digits of ICD9, with 923 distinct values.
+diag_3;Diagnosis 3;Factor;An additional secondary diagnosis and is coded as first three digits of ICD9, with 954 distinct values.
+number_diagnoses;Number of diagnoses;Int;Number of diagnoses entered to the system.
+max_glu_serum;Glucose serum test results;Factor;Indicates the range of the result or if the test was not taken. Values: ">200", ">300" and "normal" if the test is taken, and "none" if the test is not taken.
+A1Cresult;Alc test results;Factor;"Indicates the range of the result or if the test was not taken". Values: ">8%" if result was greater than 8%, "7%" if result was greater than 7% but less than 8%, "normal" if the test was less than 7%, and "none" if no test was taken.
+metformin;Metformin prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+repaglinide;Repaglinide prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+nateglinide;Nateglinide prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+chlorpropamide;Chlorpropamide prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+glimepiride;Glimepiride prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+acetohexamide;Acetohexamide prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+glipizide;Glipizide prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+glyburide;Glyburide prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+tolbutamide;Tolbutamide prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+pioglitazone;Pioglitazone prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+rosiglitazone;Rosiglitazone prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+acarbose;Acarbose prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+miglitol;Miglitol prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+troglitazone;Troglitazone prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+tolazamide;Tolazamide prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+examide;Examide prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+citoglipton;Citoglipton prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+insulin;Insulin prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+glyburide-metformin;Glyburide-metformin prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+glipizide-metformin;Glipizide-metaformin prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+glimepiride-pioglitazone;Glimepiride-pioglitazone prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+metformin-pioglitazone;Metformin-pioglitazone prescribed;Factor;Indicates whether the drug was prescribed or there was a change in dosage. Values: "up" if the dosage was increased, "down" if the dosage was decreased, "steady" if there was no change in dosage, and "No" if the drug was not prescribed.
+change;Change of medications;Factor;Indicates if medication was changed, with values: 'Change' or 'No change'.
+diabetesMed;Diabetes medication;Factor;Indicates if diabetes medication was prescribed, with values: 'Yes' and 'No'.
+readmitted;Readmitted;Factor;Days to inpatient readmission, with values: "<30" if the patient was readmitted in less than 30 days, ">30" if the patient was readmitted in more than 30 days, and 'NO' for no record of readmission.
