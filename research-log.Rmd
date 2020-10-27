@@ -597,7 +597,66 @@ kbl(normal.result, booktabs = T) %>%
   column_spec(1, bold = T)
 ```
 
-We now observe the results shown in table [NUMBER]. The results of all involved classifiers show a not-so-great picture; the accuracy is very low across all classifiers, ranging from a mere 16,20% for Nearest Neighbor (IBk) to a high-low result of 23,55% with Simple Logistics. This situation is not ideal as - on average - only one-fifth of the class variable is correctly predicted. This is because the class variable is positively skewed, which means low-valuations are more present than higher values. In our case, this means patients spent just a couple of days in hospital rather than, for example, more than a week. 
+We now observe the results shown in table [NUMBER]. The results of all involved classifiers show a not-so-great picture; the accuracy is very low across all classifiers, ranging from a mere 16,20% for Nearest Neighbor (IBk) to a high-low result of 23,55% with Simple Logistics. This situation is not ideal as - on average - only one-fifth of the class variable is correctly predicted. This is because the class variable is positively skewed, which means low-valuations are more present than higher values. In our case, this means patients spent just a couple of days in hospital rather than, for example, more than a week.
+
+Next up is determining which classifiers are most worthwhile regarding our research goals. As stated earlier, accuracy and precision are the most important metrics. The best option seems to be Simple Logistics with an accuracy of 23.60% and a precision of 0,523 - both are best-performing in their category. Deciding on a runner-up appears more challenging as J48 and Naïve Bayes both perform well. Naïve Bayes scores better in every metrics we present, but J48/C4.5 has better optimization options while Naïve Bayes' result can be considered to be its final product. In addition, the accuracy difference is a mere `r 20.76 - 19.55`%, not a significant difference. For this reason, we include both J.48/C4.5 in coming sections.
+
+\newpage
+## Optimizing our classifiers
+To determine the best possible algorithm, we need to play with some parameter settings of our chosen algorithms. To accomplish this, we want to use Weka's Experimenter mode. This mode allows us to explore multiple parameter settings and rule which are the most optimal. In other words, we want to crick up the accuracy of all algorithms involved. We will do this by exploring different meta-learners. The meta-learner CvParameterSelection was performed on J48/C4.5 and Simple Logistics to find the optimal parameter sets. Naïve Bayes was optimized manually, as it is a relatively simple algorithm with just a few settings. We present the results in the sections below. Just as in earlier section, we perform all the classifiers on a cost-sensitive matrix and split the test set in ten pieces with cross-validation.
+
+### J.48/C4.5
+First, we look at the parameter settings of the tree algorithm J48/C4.5. Here we have to deal with two parameters: the confidence factor parameter (C) and the minimal number of objects (M). The C value determines the amount of pruning performed; a small value corresponds to heavy pruning, whereas a large one to little pruning. The default is set to 0.25, and we will let the algorithm test with values ranging from 0.1 up to 0.5 in steps of 10. We set the limit to 0.5 as above it will cause little to no pruning. \cite{Pruning-J48} Parameter M's default is set to 2, which means that the minimum instances per leaf guarantees that at each split, at least 2 of the branches will have the minimum number of instances. Increasing this values means that leaves become bigger. We test with a range from 2 to 10 in steps of 1. The results are shown in table [NUMBER].
+
+```{r Results J48 optimalization}
+j48.results <- read.csv("datasets/dataset_results_weka/optimalization/j48-normal.csv", sep = ';')
+kbl(j48.results, booktabs = T) %>%
+  kable_styling(full_width = F) %>%
+  column_spec(c(1, 3, 5), bold = T)
+```
+Looking at table [NUMBER], we observe three columns of settings that caused a given accuracy, depicted besides every used setting, respectively. We first looked at the outcomes of individual parameter setting. Thereafter we combined a few of these settings to find the most optimum parameter settings. The confidence factor shows a pattern where lower values give higher accuracy; it means that we perform more pruning (reducing the size of the decision tree) which leaves us with better outcomes. But we have to be careful with this parameter as it deems to overfit our model on the training data we provide. Therefore, we want to carefully consider this value. As for parameter M, we see an opposite pattern happening, increasing this value comes with better accuracy. With the default setting (a value of 2) returning 19.55% accuracy, we see an increase of `r 20.88 - 19.55`% percentage points as we set this to 5. With a value of 10 the accuracy becomes its most optimal point yet: 21.80%. In combining both most optimal settings we get an accuracy of 23.28%, also the highest in the Combination column. Optimizing the settings of this algorithm, we see an increase of `r 23.28 - 19.55`% at the finish line. Truthfully, it is not a significant increase from its baseline performance but it is still a better result. Considering we did performed cross-validation on the confidence factor and the outcome looks promising to not be overfitted, we can take these settings and conclude that this is the most optimum form of J48 regarding our research.
+
+\newpage
+### Simple Logistics
+Now we turn to Simple Logistics (SL). SL has the advantage of built-in attribute selection. This means that it stop adding SimpleLinearRegression models when the cross-validation classification error no longer decreases. \cite{SL-model} This algorithm has quite a few parameters to its disposal, but we will not refrain ourselves to checkout every one of them, as not each one is relevant. Here we deal with the following set of parameters: useAIC (A), heuristicStop (H), maxBoostingIterations (M), numBoostingIterations (I), and weightTrimBeta (W). A determines when to stop iterations of adding models. This is an alternative to cross-validation. H is a value that decides whether a run is stopped if no new error minimum has not been reached in the last iteration of H. Weka advices to use the default value, but we are interested in its effects when we change this value. M sets a maximum number of iterations for LogiBoost. Default is set to 500, and it is adviced to use a higer number in bigger datasets, which is the case for us. Moving on to I: it is a counterpart of M in which sets a fix number of iterations for LogiBoost. If < 0, the number is cross-validated or a stopping criterion on the training set is used, which is the default. And lastly, W states that only instances carrying (1 - W)% of the weight from the previous iteration are made available for the next one - resulting in less instances but may be a more accurate model. We depict our findings in table [NUMBER].
+
+```{r Results SL optimalization}
+sl.results <- read.csv("datasets/dataset_results_weka/optimalization/sl-normal.csv", sep = ';')
+kbl(sl.results, booktabs = T) %>%
+  kable_styling(full_width = F) %>%
+  column_spec(1, bold = T)
+```
+
+All parameters involved do not have a big impact on improving the accuracy of the classifier. Combining parameters did not help either, but their results are not shown. This proves that the SL algorithm already delivered the closest to the most optimal situation possible. As we look back to table [NUMBER], we already saw that this algorithm had a relatively high accuracy with default settings in comparison with others. In addition, we already stated that this algorithm has the ability to stop adding models when cross-validation errors no longer occur; in other words, it stops when it finds the most optimum situation. For these reasons, we do not adjust parameters and continue with the default settings.
+
+\newpage
+### Naïve Bayes
+As discussed earlier, Naïve Bayes is a relatively simple algorithm with just a few parameter settings and therefore we optimized it manually. We had two options to research and present our findings in table [NUMBER], depicted underneath. These options are: 1) using kernel density estimator rather than normal distribution (K); and 2) using supervised discretization (D). The K option is a way to estimate the probability density function of a variable; in a sense it is smoothing out the data a bit, in a different way than via the normal distribution. Or in other words, it weighs observations differently depending on how far way from a certain point that we are evaluating. The D parameter considers the class value, whereas the default, unsupervised discretization, does not. Therefore, we expect a better results as the filter will break our attributes into bins that provide the most information about the class variable. We cannot combine the two parameters as that would create conflict.
+
+```{r Results Bayes optimization}
+bayes.results <- read.csv("datasets/dataset_results_weka/optimalization/bayes-normal.csv", sep = ';')
+kbl(bayes.results, booktabs = T) %>%
+  kable_styling(full_width = F) %>%
+  column_spec(1, bold = T)
+```
+
+We now observe table [NUMBER] where both introduced parameters have a positive impact on the accuracy and all other metrics involved. Namely the K parameter increases the accuracy a few percentage points, so does the M parameter but to a less extend. In other areas the results are even closer between both parameters: 0.203 precision for K and a score of 0.199 in regard to M. But looking at the bigger picture, we conclude that K is the better option to go along with. Still, now optimized, Naïve Bayes still scores less on every metrics than SL performed in its baseline. We will discuss which of the three classifiers is the final one after some more optimization. 
+
+\newpage
+## Selecting attributes
+Weka contains a meta-learner that is called 'AttributeSelectedClassifier'. This meta-learner gives us the opportunity to evaluate if a given classifier performs better without certain attributes. It does this in two steps: 1) dimensionality reduction through attribute selection and; 2) passing on to a given classifier. \cite{Weka-AttribSelectClass} We have the option to rank attributes hinged on their performance in regard to the accuracy or any other metric. We are going to look at two different evaluators of this classifier to research if we are better of without any of our remaining attributes. These three different ones are 1) CorrelationAttributeEval, 2) InfoGainAttributeEval, and 3) WrapperSubsetEval.
+
+### Correlation
+
+### Info Gain
+
+### Wrapper
+
+## Exploring other meta-learners
+Besides the meta learners we already performed and their results discussed, we like to perform another set of meta learners. These meta learners focus on ... . In this section, we will discuss the results of the classifiers Stacking, Bagging, and Boosting.
+
+## Exploring more unconventional ways to increase Accuracy
+As we have seen in the presented results in the sections above, the accuracy of our model is softly said not great. We top at an accuracy of [NUMBER] which is general seen as too low to be of use in daily life situation. In this section we explore more abrupt ways to increase the accuracy; think of restructuring or removing instances, which we did not want to do at first, from our class variable.
 
 ```{r Calculating amount of instances per value, include = FALSE}
 count.data <- final.data %>%
@@ -615,7 +674,7 @@ instance.data <- final.data %>%
 write.csv(instance.data, "datasets/base_datasets/less_instances.csv", row.names = FALSE)
 ```
 
-There is no magic trick that would increase the accuracy without severely adjusting our data. Think about removing instances with higher valuation, reconstructing instances, or manually giving weight to high values to create a more normal-looking distribution. We already performed a cost-sensitive classifier to give more weight to values with fewer instances. Awarding even more weight could create a false image of what is really going on. Removing instances with higher values that are less covered is the last thing we want to do. Then we need to draw a line somewhere: what values can stay and which ones need to go? To illustrate the effects of removing high-value instances, we consider removing instances with a valuation ranging from 11 to 14; therefore, we would remove `r count.data %>% filter(time_in_hospital %in% c("11", "12", "13", "14")) %>% numcolwise(sum)(.)` instances, which translates to a loss of around 6%. After removal, we are left with 66.871 instances. Now that we have a new, temporary dataset, we turn to Weka once more and see if the rate of correctly classified instances has improved. The short-hand answer to that question is yes, it has improved, but not substantially enough to consider removing these instances for our final model. We performed the J48 and Simple Logistics classifiers again and observed an improvement of 1,13% compared to our first run (19,81% versus 20,94%) for J48. We noticed a similar trend for Simple Logistics. Here, the improvement is just 1,33%. The results are depicted in table [NUMBER] . Removing 6% of our instances for such little improvement in accuracy overall is not worthwhile; therefore, we can safely conclude that this method is not what we are looking for in determining a better accuracy.
+As we have seen, there is no magic trick that would increase the accuracy without severely adjusting our data. Think about removing instances with higher valuation, reconstructing instances, or manually giving weight to high values to create a more normal-looking distribution. We already performed a cost-sensitive classifier to give more weight to values with fewer instances. Awarding even more weight could create a false image of what is really going on. Removing instances with higher values that are less covered is the last thing we want to do. Then we need to draw a line somewhere: what values can stay and which ones need to go? To illustrate the effects of removing high-value instances, we consider removing instances with a valuation ranging from 11 to 14; therefore, we would remove `r count.data %>% filter(time_in_hospital %in% c("11", "12", "13", "14")) %>% numcolwise(sum)(.)` instances, which translates to a loss of around 6%. After removal, we are left with 66.871 instances. Now that we have a new, temporary dataset, we turn to Weka once more and see if the rate of correctly classified instances has improved. The short-hand answer to that question is yes, it has improved, but not substantially enough to consider removing these instances for our final model. We performed the J48 and Simple Logistics classifiers again and observed an improvement of 1,13% compared to our first run (19,81% versus 20,94%) for J48. We noticed a similar trend for Simple Logistics. Here, the improvement is just 1,33%. The results are depicted in table [NUMBER] . Removing 6% of our instances for such little improvement in accuracy overall is not worthwhile; therefore, we can safely conclude that this method is not what we are looking for in determining a better accuracy.
 
 ```{r Inserting results with less instances}
 diff.instances <- read.csv("datasets/dataset_results_weka/base/less_instances.csv", sep = ";")
@@ -624,7 +683,7 @@ kbl(diff.instances, booktabs = T) %>%
   column_spec(1, bold = T)
 ```
 
-Another option to improve accuracy could be a relabeling of the attribute. This method has the upside of retaining all instances. The downside of this method is that we create bigger data groups, thereby removing the chance of exactly determining how many days were spent in the hospital. While we cannot determine exactly how many days a patient spent in the hospital, we can separate visits based on classification, such as "short" or "average". So classification is still possible but is less specific. This is the price to pay if we want a more accurate model. We considered a relabeling with four different valuations: 
+Another option to improve accuracy could be a relabeling of the attribute. This method has the upside of retaining all instances. The downside of this method is that we create bigger data groups, thereby removing the chance of exactly determining how many days were spent in the hospital. While we cannot determine exactly how many days a patient spent in the hospital, we can separate visits based on classification, such as "short" or "average". So, classification is still possible but is less specific. This is the price to pay if we want a more accurate model. We considered a relabeling with four different valuations: 
 \begin{enumerate}
   \item Time spent in hospital is between one and three days;
   \item Time spent in hospital is between four and six days; 
@@ -661,7 +720,6 @@ write.csv(final.data.label, "datasets/base_datasets/relabeled.csv", row.names = 
 
 Now that we have a new dataset, we turn to Weka once more to analyze the new dataset. The results of this are shown in table [NUMBER]. Having obtained results regarding both datasets, we can determine the differences. As expected, accuracy rose across the broad of classifiers; most experienced an increase of at least 30 percentage points, except for IBk, which rose 26 percentage points. IBk already had the least sufficient outcome in previous Weka runs, so logically we would not have expected it to become best-performing. When considering taking a final dataset to the next stage in our research, we must weigh if a less specific attribute is worth having better accuracy (and for every other metric, for that matter). As we already discussed, having a sense of the duration spent in the hospital is still present. Additionally, we can now predict more accurately by a large margin. Even now, classifiers only predict correctly half of the time, and is even worse when we do not relabel. In contrast, if we come put with a way to produce more sufficient outcomes with the initial dataset, we can always switch back. It seems that the relabeled dataset looks the most promising right now, and therefore we will continue our analysis with this dataset. However, we will report on the initial dataset in the next section as well. 
 
-Next up is determining which classifiers are most worthwhile regarding our research goals. As stated earlier, accuracy and precision are the most important metrics. The best option seems to be Simple Logistics with an accuracy of 56,53% and a precision of 0,523 - both are best-performing in their category. Deciding on a runner-up appears more challenging as J48 and Naïve Bayes both perform well. J48 has better accuracy (52,76%) than Naïve Bayes (51,28%), but Bayes outperforms J48 in almost every other aspect. This sometimes happens in far bigger margins than their difference in accuracy. For example, the dissimilarity for the ROC area is 0,071. To conclude, both classifiers seem as likely candidates for further analysis, and makes it is hard to decide which is the best. For that reason, in addition to taking Simple Logistics, both Naïve Bayes and J48 will be considered in further analysis as well. 
 
 ```{r Results relabeling}
 label.result <- read.csv("datasets/dataset_results_weka/base/relabeled.csv", sep = ";")
@@ -670,36 +728,7 @@ kbl(label.result, booktabs = T) %>%
   column_spec(1, bold = T)
 ```
 
-# Optimizing our classifiers
-To determine the best possible algorithm, we need to play with some parameter settings of our chosen algorithms. To accomplish this, we want to use Weka's Experimenter mode. This mode allows us to explore multiple parameter settings and rule which are the most optimal. In other words, we want to crick up the accuracy of all algorithms involved. We will do this by exploring different meta-learners. The meta-learner CvParameterSelection was performed on J48/C4.5 and Simple Logistics to find the optimal parameter sets. We present the results in the sections below.
-
-## J.48/C4.5
-Firstly, we look at the parameter settings of the tree algorithm J48/C4.5. Here we have to deal with two parameters: the confidence factor parameter (C) and the minimal number of objects (M). The C value determines the amount of pruning performed; a small value corresponds to heavy pruning, whereas a large one to little pruning. The default is set to 0.25, and we will let the algorithm test with values ranging from 0.1 up to 0.5 in steps of 10. We set the limit to 0.5 as above it will cause little to no pruning. \cite{Pruning-J48} Parameter M's default is set to 2, which means that the minimum instances per leaf guarantees that at each split, at least 2 of the branches will have the minimum number of instances. Increasing this values means that leaves become bigger. We test with a range from 2 to 10 in steps of 1. As we do not have a test- and trainingset, we use cross-validation again.
-
-```{r Results J48 optimalization}
-j48.results <- read.csv("datasets/dataset_results_weka/optimalization/j48-normal.csv", sep = ';')
-kbl(j48.results, booktabs = T) %>%
-  kable_styling(full_width = F) %>%
-  column_spec(1, bold = T)
-```
-
-[DISCUSS RESULTS]
-
-## Simple Logistics
-[INTRODUCTION]
-
-
-```{r Results SL optimalization}
-sl.results <- read.csv()
-```
-
-[DISCUSS RESULTS]
-
-# Selecting attributes
-Weka contains a meta-learner that is called 'AttributeSelectedClassifier'. This meta-learner gives us the opportunity to evaluate if a given classifier performs better without certain attributes. It does this in two steps: 1) dimensionality reduction through attribute selection and 2) passing on to a given classifier. \cite{Weka-AttribSelectClass} We have the option to rank attributes hinged on their performance in regard to the accuracy. We are going to look at two different evaluators of this classifier to research if we are better of without any of our remaining attributes. These four different are 1) ... ; and 2) ... .
-
-# Exploring other meta-learners
-Besides the meta learners we already performed and their results discussed, we like to perform another set of meta learners. These meta learners focus on ... . In this section, we will discuss the results of the classifiers Stacking, Bagging, and Boosting.
+[[[[ Next up is determining which classifiers are most worthwhile regarding our research goals. As stated earlier, accuracy and precision are the most important metrics. The best option seems to be Simple Logistics with an accuracy of 56,53% and a precision of 0,523 - both are best-performing in their category. Deciding on a runner-up appears more challenging as J48 and Naïve Bayes both perform well. J48 has better accuracy (52,76%) than Naïve Bayes (51,28%), but Bayes outperforms J48 in almost every other aspect. This sometimes happens in far bigger margins than their difference in accuracy. For example, the dissimilarity for the ROC area is 0,071. To conclude, both classifiers seem as likely candidates for further analysis, and makes it is hard to decide which is the best. For that reason, in addition to taking Simple Logistics, both Naïve Bayes and J48 will be considered in further analysis as well.  ]]]]
 
 ## ROC curve
 ```{r}
@@ -761,7 +790,6 @@ print(plt)
 #(6) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W lazy.IBk -- -K 1 -W 0 -A \"weka.core.neighboursearch.LinearNNSearch -A \\\"weka.core.EuclideanDistance -R first-last\\\"\"' -110658209263002404
 #(7) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W trees.J48 -- -C 0.25 -M 2' -110658209263002404
 
-
 (relabeled)
 # meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W rules.ZeroR
 #(1) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W rules.OneR -- -B 6' -110658209263002404
@@ -782,4 +810,6 @@ Centers for Disease Control and Prevention, National Center for Health Statistic
 Hall, M, \textit{Class AttributeSelectedClassifier}, \url{https://weka.sourceforge.io/doc.dev/weka/classifiers/meta/AttributeSelectedClassifier.html}.
 \bibitem{Pruning-J48}
 Stiglic, G., Kocbek S., Pernek I., Kokol P., \textit{Comprehensive Decision Tree Models in Bioinformatics}. DOI: \url{10.1371/journal.pone.0033812}
+\bibitem{SL-model}
+Eibe Frank, Administrator; \textit{Logistic VS Simple Logistic}, \url{https://weka.8497.n7.nabble.com/Logistic-VS-Simple-Logistic-td31410.html}
 \end{thebibliography}
