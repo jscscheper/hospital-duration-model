@@ -680,15 +680,16 @@ kbl(gain.results, booktabs = T) %>%
 Again, we see an occurring trend: the same five attributes - num_medications, num_lab_procedures, num_diagnosis, num_procedures and change - perform the best with each evaluator. The same can be said about the other side. The attributes number_emergency and number_outpatient are both worst performing once more. We will remove these attributes at least. In the next section, we will discuss the attributes we are going to remove and which ones are here to stay.
 
 ### Final decision
-In order to remove some attributes, we decided to look into what the effects are if an increasing set of attributes is removed. We take into account the attributes number_emergency, number_outpatient, gender, race, pioglitazone, rosiglitazone, and metformin - removing too many attributes would make the dataset completely redundant and unusable entirety.
+As already stated, we will remove the attributes number_emergency and number_outpatient. Considering if we needed to remove more attributes is a more difficult decision; almost all involved attributes do not score sufficient enough to even come close to the considered normal cut-off value of 0.05 or, in some cases, 0.01. Therefore, we want to explore another option that involves relevancy in the information an attribute gives us. For example, the attribute gender contains critical information - is the patient a male or a woman - regarding further research goals and being able to separate cases on gender is very important in medical studies, but has a low score in every attribute evaluation. Even though it has a low score, we want to retain it because of its content. Another example is metformin, which also scores low but is not of importance as diabetesMed. When applying this logic across the broad of attributes, we come with a selection of candidates to remove. These are, in random order: metformin, diabetesMed, rosiglitazone, pioglitazone, glipizide, and glyburide. This leaves us with 16 attributes, including the class variable. We performed all our classifiers again on the new state of the dataset. We only consider the accuracy. The results are depicted in table [NUMBER].
 
-```{r Final results - attribute removal}
-final.results <- read.csv("datasets/dataset_results_weka/attributes/final.csv")
-kbl(final.results, booktabs = T) %>%
+```{r Final results}
+final.resuls <- read.csv("datasets/dataset_results_weka/attributes/final-attributes.csv", sep = ";")
+kbl(gain.results, booktabs = T) %>%
   kable_styling(full_width = F) %>%
   column_spec(1, bold = T)
 ```
-Looking at table [NUM] we have decided to get ride of the following attributes, with the argument that these attributes provide little to no contributing information or perform the worst: number_outpatient, number_emergency, pioglitazone, rosiglitazone, metformin, glipizide, and glyburide. The removal helped to increase the accuracy of all involved classifiers a bit, but not significantly.
+
+[DISCUSS RESULTS]
 
 ## Exploring other meta learners
 Besides the meta learners we already performed and their results discussed, we like to perform another set of meta learners. These meta learners focus on ... . In this section, we will discuss the results of the classifiers Stacking, Bagging, and Boosting.
