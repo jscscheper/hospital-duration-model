@@ -644,16 +644,74 @@ We now observe table [NUMBER] where both introduced parameters have a positive i
 
 \newpage
 ## Selecting attributes
-Weka contains a meta-learner that is called 'AttributeSelectedClassifier'. This meta-learner gives us the opportunity to evaluate if a given classifier performs better without certain attributes. It does this in two steps: 1) dimensionality reduction through attribute selection and; 2) passing on to a given classifier. \cite{Weka-AttribSelectClass} We have the option to rank attributes hinged on their performance in regard to the accuracy or any other metric. We are going to look at two different evaluators of this classifier to research if we are better of without any of our remaining attributes. These three different ones are 1) CorrelationAttributeEval, 2) InfoGainAttributeEval, and 3) WrapperSubsetEval.
+Weka contains a meta-learner that is called 'AttributeSelectedClassifier'. This meta learner gives us the opportunity to evaluate if a given classifier performs better without certain attributes. It does this in two steps: 1) dimensionality reduction through attribute selection and; 2) passing on to a given classifier. \cite{Weka-AttribSelectClass} We have the option to rank attributes hinged on their performance in regard to the accuracy or any other metric. We are going to look at three different evaluators of this classifier to research if we are better off without any of our remaining attributes. These three different ones are 1) CorrelationAttributeEval, 2) InfoGainAttributeEval, and 3) GainRatioAttributeEval. Before dropping any attribute, we investigate the influence of a low-performing attribute. We also take their performance over the broad of evaluators we are going to use into account. This can vary between evaluators and is essential to investigate.
 
 ### Correlation
+We look at the CorrelationAttributeEval which calculates the correlation between each attribute and the class variable. When we run an evaluater we look for values that outline a moderate-to-high or negative correlation, so ranging from 1 to -1. We want to avoid attributes that have a near-zero or zero correlation, as these attributes can potentially harm our model's performance. Therefore, we want to drop these attributes. The Ranker search method will be used here.
+
+```{r Results correlation attribute evaluation}
+corr.results <- read.csv("datasets/dataset_results_weka/attributes/correlation.csv", sep = ";")
+kbl(corr.results, booktabs = T) %>%
+  kable_styling(full_width = F) %>%
+  column_spec(1, bold = T)
+```
+We observe the results in table [NUMBER], and it is not great to say the least. Our highest scoring attribute is num_mediations with a score of 0.12651, and our least-scoring is rosiglitazone with a score of a mere 0.000389. In most experiments, it is usual to use a cut-off score of 0.05 for relevancy of an attribute. If we would do this, we are left with four of the 23 discussed attributes. That would not be worth it if we want to continue with these research goals. If we proposed another cut-off of, for example, 0.01 we would lose eight attributes instead of 19. As of now, we like to look at the results of other evaluators before making a final decision.
 
 ### Info Gain
+Next up is an interesting evaluator called InfoGainAttributeEval, which looks at the information gain or entropy for each attribute for the output/class variable. Calculated values can range between 0 (no information) and 1 (maximum information). Attributes with a high valuation contribute more to the model than lower values do, as they reduce entropy more. There is the potential of removing attributes with a low valuation that could increase accuracy. Like we did in the correlation evaluator, we use the Ranker search method once more. We depict our results and findings in table [NUMBER].
 
-### Wrapper
+```{r Results info gain attribute evaluation}
+info.results <- read.csv("datasets/dataset_results_weka/attributes/info_gain.csv", sep = ";")
+kbl(info.results, booktabs = T) %>%
+  kable_styling(full_width = F) %>%
+  column_spec(1, bold = T)
+```
+As we have seen in the section about correlation, we see that the same set of attributes performing worse than others. Some even perform so bad that they get a score of zero - number_emergency and number_outpatient - which shows that at least these two attributes are up for removal. Deciding on a cut-off value is difficult; what is considered a 'normal' cut-off value means, again, that we would throw away at least 80% of the attributes. In the case of 0.05, we would be left with only two attributes and with 0.01 eight attributes. What we can do is look at the effects of removing sets of attributes at a time and run our classifiers again to determine the effects.
 
-## Exploring other meta-learners
+### Gain Ratio
+This evaluator looks a lot like the one we just discussed. It is an enhancement of the InfoGain evaluator, with a normalized score. In more detail, this method measures the significance of attributes with respect to the class variable on the basis of gain ratio. A higher gain ratio means it reduces more entropy. We again use the Ranker search method. The results are shown in table [NUMBER].
+
+```{r Results gain ratio attribute evaluation}
+gain.results <- read.csv("datasets/dataset_results_weka/attributes/gain_ratio.csv", sep = ";")
+kbl(gain.results, booktabs = T) %>%
+  kable_styling(full_width = F) %>%
+  column_spec(1, bold = T)
+```
+Again, we see an occurring trend: the same five attributes - num_medications, num_lab_procedures, num_diagnosis, num_procedures and change - perform the best with each evaluator. The same can be said about the other side. The attributes number_emergency and number_outpatient are both worst performing once more. We will remove these attributes at least. In the next section, we will discuss the attributes we are going to remove and which ones are here to stay.
+
+### Final decision
+In order to remove some attributes, we decided to look into what the effects are if an increasing set of attributes is removed. We take into account the attributes number_emergency, number_outpatient, gender, race, pioglitazone, rosiglitazone, and metformin - removing too many attributes would make the dataset completely redundant and unusable entirety.
+
+```{r Final results - attribute removal}
+final.results <- read.csv("datasets/dataset_results_weka/attributes/final.csv")
+kbl(final.results, booktabs = T) %>%
+  kable_styling(full_width = F) %>%
+  column_spec(1, bold = T)
+```
+Looking at table [NUM] we have decided to get ride of the following attributes, with the argument that these attributes provide little to no contributing information or perform the worst: number_outpatient, number_emergency, pioglitazone, rosiglitazone, metformin, glipizide, and glyburide. The removal helped to increase the accuracy of all involved classifiers a bit, but not significantly.
+
+## Exploring other meta learners
 Besides the meta learners we already performed and their results discussed, we like to perform another set of meta learners. These meta learners focus on ... . In this section, we will discuss the results of the classifiers Stacking, Bagging, and Boosting.
+
+### Bagging
+
+```{r}
+bagging.results <- read.csv("datasets/dataset_results_weka/other_meta/bagging.csv")
+```
+
+### Boosting
+
+```{r}
+boosting.results <- read.csv("datasets/dataset_results_weka/other_meta/boosting.csv")
+```
+
+### Stacking
+
+```{r}
+stacking.results <- read.csv("datasets/dataset_results_weka/other_meta/stacking.csv")
+```
+
+## ROC curve and Confusion matrix
 
 ## Exploring more unconventional ways to increase Accuracy
 As we have seen in the presented results in the sections above, the accuracy of our model is softly said not great. We top at an accuracy of [NUMBER] which is general seen as too low to be of use in daily life situation. In this section we explore more abrupt ways to increase the accuracy; think of restructuring or removing instances, which we did not want to do at first, from our class variable.
