@@ -1,0 +1,24 @@
+﻿Attribute;Info Gain
+num_medications;0.18362
+num_lab_procedures;0.10033
+number_diagnoses;0.04923
+num_procedures;0.03651
+diag_1;0.02377
+age;0.0188
+insulin;0.01602
+change;0.01094
+hba1c_res;0.00639
+diabetesMed;0.00507
+A1Cresult;0.005
+readmitted;0.00452
+glipizide;0.0038
+number_inpatient;0.0035
+glyburide;0.00328 
+icu_or_non;0.00317
+metformin;0.00249
+pioglitazone;0.00163
+gender;0.00147
+rosiglitazone;0.00135
+race;0.00131
+number_emergency;0
+number_outpatient;0

@@ -93,6 +93,8 @@ tableMissingValues <- data.frame("Missing.Values" = tableMissingValues[1:6,],
                                  "Missing.Values.Percentage" = tableMissingValues[7:12,])
 rownames(tableMissingValues) <- myvars
 
+tableMissingValues['payer_code', 2]
+
 # Added 27-09
 library(naniar)
 encounter.data.missing <- replace(encounter.data, encounter.data == "?", NA)
@@ -103,7 +105,7 @@ vis_miss(encounter.data.missing, warn_large_data = F)
 \centering
 \begin{tabular}{rrr}
   \hline
- & Missing.Values & Missing.Values.Percentage \\ 
+ & Missing values & Missing Values [%] \\ 
   \hline
 race & 2273.00 & 2.23 \\ 
   weight & 98569.00 & 96.86 \\ 
@@ -162,9 +164,9 @@ table.dup <- data.frame('Initial number of records' = nrow(encounter.data),
 \centering
 \begin{tabular}{rrrr}
   \hline
- & Initial.number.of.records & Number.of.Duplicates & Difference.in.percent \\ 
+ Initial number of records & Number of duplicates & Difference in percent \\ 
   \hline
-1 & 101766 & 16773 & -16.48 \\ 
+ 101766 & 16773 & -16.48 \\ 
    \hline
 \end{tabular}
 \end{table}
@@ -650,7 +652,7 @@ Weka contains a meta-learner that is called 'AttributeSelectedClassifier'. This 
 We look at the CorrelationAttributeEval which calculates the correlation between each attribute and the class variable. When we run an evaluater we look for values that outline a moderate-to-high or negative correlation, so ranging from 1 to -1. We want to avoid attributes that have a near-zero or zero correlation, as these attributes can potentially harm our model's performance. Therefore, we want to drop these attributes. The Ranker search method will be used here.
 
 ```{r Results correlation attribute evaluation}
-corr.results <- read.csv("datasets/dataset_results_weka/attributes/correlation.csv", sep = ";")
+corr.results <- read.csv("datasets/dataset_results_weka/attributes/correlation-normal.csv", sep = ";")
 kbl(corr.results, booktabs = T) %>%
   kable_styling(full_width = F) %>%
   column_spec(1, bold = T)
@@ -661,7 +663,7 @@ We observe the results in table [NUMBER], and it is not great to say the least. 
 Next up is an interesting evaluator called InfoGainAttributeEval, which looks at the information gain or entropy for each attribute for the output/class variable. Calculated values can range between 0 (no information) and 1 (maximum information). Attributes with a high valuation contribute more to the model than lower values do, as they reduce entropy more. There is the potential of removing attributes with a low valuation that could increase accuracy. Like we did in the correlation evaluator, we use the Ranker search method once more. We depict our results and findings in table [NUMBER].
 
 ```{r Results info gain attribute evaluation}
-info.results <- read.csv("datasets/dataset_results_weka/attributes/info_gain.csv", sep = ";")
+info.results <- read.csv("datasets/dataset_results_weka/attributes/info_gain-normal.csv", sep = ";")
 kbl(info.results, booktabs = T) %>%
   kable_styling(full_width = F) %>%
   column_spec(1, bold = T)
@@ -672,7 +674,7 @@ As we have seen in the section about correlation, we see that the same set of at
 This evaluator looks a lot like the one we just discussed. It is an enhancement of the InfoGain evaluator, with a normalized score. In more detail, this method measures the significance of attributes with respect to the class variable on the basis of gain ratio. A higher gain ratio means it reduces more entropy. We again use the Ranker search method. The results are shown in table [NUMBER].
 
 ```{r Results gain ratio attribute evaluation}
-gain.results <- read.csv("datasets/dataset_results_weka/attributes/gain_ratio.csv", sep = ";")
+gain.results <- read.csv("datasets/dataset_results_weka/attributes/gain_ratio-normal.csv", sep = ";")
 kbl(gain.results, booktabs = T) %>%
   kable_styling(full_width = F) %>%
   column_spec(1, bold = T)
@@ -683,40 +685,109 @@ Again, we see an occurring trend: the same five attributes - num_medications, nu
 As already stated, we will remove the attributes number_emergency and number_outpatient. Considering if we needed to remove more attributes is a more difficult decision; almost all involved attributes do not score sufficient enough to even come close to the considered normal cut-off value of 0.05 or, in some cases, 0.01. Therefore, we want to explore another option that involves relevancy in the information an attribute gives us. For example, the attribute gender contains critical information - is the patient a male or a woman - regarding further research goals and being able to separate cases on gender is very important in medical studies, but has a low score in every attribute evaluation. Even though it has a low score, we want to retain it because of its content. Another example is metformin, which also scores low but is not of importance as diabetesMed. When applying this logic across the broad of attributes, we come with a selection of candidates to remove. These are, in random order: metformin, diabetesMed, rosiglitazone, pioglitazone, glipizide, and glyburide. This leaves us with 16 attributes, including the class variable. We performed all our classifiers again on the new state of the dataset. We only consider the accuracy. The results are depicted in table [NUMBER].
 
 ```{r Final results}
-final.resuls <- read.csv("datasets/dataset_results_weka/attributes/final-attributes.csv", sep = ";")
-kbl(gain.results, booktabs = T) %>%
+final.results <- read.csv("datasets/dataset_results_weka/attributes/final-attributes.csv", sep = ";")
+kbl(final.results, booktabs = T) %>%
   kable_styling(full_width = F) %>%
   column_spec(1, bold = T)
 ```
+We now observe table [NUMBER] and we can see that removing said attributes improves only the accuracy and other metrics of Naïve Bayes and J48/C4.5; Simple Logistics performs slightly worse with less attributes. Taking the best-performing version of a classifier seems to best option. So in the case of taking Simple Logistics as our final model, we need to make a decision whether we want to keep the attributes we removed that concluded in better accuracy for both other models or also get ride of them here. The attributes that were removed contained very little important information relative to others. Never mind that they resulted in getting a better accuracy in the case of Simple Logistics - but not with a big margin (just 0.13%). Therefore, we are going to continue with less attributes for each classifier. 
+
+## Confusion matrices
+In this section, we look at the confusion matrices of the best-fitting versions of our chosen classifiers. Since we have a class variable with 14 values, a matrix would have a 14x14 structure. For the reason of that complexity, we have always looked at the weighted average when comparing models. Now that we want to make a final decision on which model we are going to use, with the fact that all our models' performances are relatively close to one another, it can help to look at the details for making a final decision.
+
+### Naïve Bayes
+We will look at the outcome regarding Naïve Bayes first. The confusion matrix is shown in table [NUMBER]. When analyzing a confusion matrix it is essential know that the (longest) diagonal line represents all true predictions.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rlllllllllllll}
+  \hline
+ a    & b    & c    & d     & e   & f   & g   & h   & i   & j  & k  & l & m  & n  & <-- classified as \\ 
+  \hline
+ 5036 & 2811 & 1968 &  450  & 153 &  46 &  21 &  11 &   3 &  2 &  1 & 0 &  0 &  0 & | a = 1           \\
+ 3523 & 4023 & 3037 &  931  & 426 & 149 &  50 &  41 &  33 &  4 &  1 & 0 &  2 &  1 & | b = 2           \\
+ 2334 & 3239 & 4250 & 1468  & 730 & 263 &  95 & 111 &  49 &  9 &  4 & 0 &  2 &  1 & | c = 3           \\
+ 1292 & 2050 & 3159 & 1416  & 818 & 261 & 160 & 233 &  63 & 12 &  8 & 0 &  3 &  1 & | d = 4           \\
+  723 & 1138 & 2054 & 1118  & 815 & 314 & 176 & 287 &  76 & 22 & 13 & 0 & 10 &  2 & | e = 5           \\
+  444 &  719 & 1510 &  825  & 635 & 330 & 186 & 294 & 103 & 27 & 13 & 1 &  6 &  3 & | f = 6           \\
+  273 &  476 & 1035 &  669  & 523 & 308 & 171 & 321 &  87 & 30 & 15 & 0 & 22 &  7 & | g = 7           \\
+  208 &  260 &  694 &  427  & 392 & 235 & 148 & 298 &  98 & 59 & 28 & 2 & 16 &  7 & | h = 8           \\
+   95 &  155 &  429 &  281  & 255 & 177 & 135 & 248 &  80 & 41 & 22 & 2 & 12 &  9 & | i = 9           \\
+   60 &  109 &  324 &  207  & 184 & 145 & 109 & 224 &  73 & 41 & 30 & 1 & 10 &  6 & | j = 10          \\
+   46 &   81 &  241 &  170  & 155 & 134 &  80 & 170 &  53 & 42 & 20 & 0 & 13 & 14 & | k = 11          \\
+   39 &   54 &  182 &  123  & 104 &  94 &  64 & 139 &  58 & 34 & 21 & 2 &  6 &  6 & | l = 12          \\
+   40 &   36 &  127 &   85  &  96 &  70 &  67 & 138 &  50 & 24 & 24 & 1 & 11 &  2 & | m = 13          \\
+   24 &   31 &  122 &   66  &  69 &  61 &  46 & 106 &  49 & 33 & 26 & 2 & 12 &  4 & | n = 14          \\
+  \hline
+\end{tabular}
+\end{table}
 
 [DISCUSS RESULTS]
 
-## Exploring other meta learners
-Besides the meta learners we already performed and their results discussed, we like to perform another set of meta learners. These meta learners focus on ... . In this section, we will discuss the results of the classifiers Stacking, Bagging, and Boosting.
+### Simple Logistics
+Next up is the confusion matrix retrieved from the Simple Logistics classifier, which is depicted in table [NUMBER].
 
-### Bagging
+\begin{table}[ht]
+\centering
+\begin{tabular}{rlllllllllllll}
+  \hline
+ a    & b    & c    & d    & e   & f   & g   & h   & i  & j  & k  & l & m  & n & <-- classified as \\ 
+  \hline
+ 4556 & 3091 & 2566 &  217 &  53 &   7 &  11 &   1 &  0 &  0 &  0 & 0 &  0 & 0 &   | a = 1         \\
+ 3127 & 4167 & 4099 &  579 & 163 &  45 &  32 &   8 &  0 &  1 &  0 & 0 &  0 & 0 &   | b = 2         \\
+ 2029 & 3345 & 5645 & 1027 & 325 &  93 &  70 &  20 &  1 &  0 &  0 & 0 &  0 & 0 &   | c = 3         \\
+ 1150 & 2092 & 4375 & 1098 & 446 & 150 & 101 &  55 &  4 &  4 &  0 & 0 &  1 & 0 &   | d = 4         \\
+  646 & 1214 & 2920 & 1004 & 531 & 149 & 179 &  70 & 18 &  7 &  5 & 0 &  4 & 1 &   | e = 5         \\
+  432 &  735 & 2087 &  848 & 492 & 175 & 180 & 103 & 24 & 11 &  5 & 0 &  2 & 2 &   | f = 6         \\
+  256 &  518 & 1478 &  681 & 422 & 202 & 190 & 124 & 31 & 23 &  9 & 0 &  2 & 1 &   | g = 7         \\
+  203 &  316 & 955  &  479 & 341 & 157 & 233 & 115 & 35 & 30 &  5 & 0 &  2 & 1 &   | h = 8         \\
+   92 &  163 & 606  &  330 & 261 & 146 & 197 &  96 & 27 & 14 &  4 & 0 &  3 & 2 &   | i = 9         \\
+   60 &  125 & 454  &  233 & 218 & 111 & 181 &  74 & 36 & 16 &  8 & 0 &  3 & 4 &   | j = 10        \\
+   39 &   86 & 361  &  181 & 181 & 102 & 129 &  72 & 28 & 19 &  8 & 0 & 11 & 2 &   | k = 11        \\
+   34 &   57 & 255  &  142 & 133 &  78 & 115 &  58 & 24 & 16 &  5 & 0 &  5 & 4 &   | l = 12        \\
+   34 &   43 & 197  &   77 & 122 &  58 & 119 &  54 & 31 & 14 & 12 & 1 &  6 & 3 &   | m = 13        \\
+   18 &   35 & 167  &   79 &  85 &  67 &  91 &  43 & 29 & 21 &  6 & 0 &  9 & 1 &   | n = 14        \\
+  \hline
+\end{tabular}
+\end{table}
 
-```{r}
-bagging.results <- read.csv("datasets/dataset_results_weka/other_meta/bagging.csv")
-```
+[DISCUSS RESULTS]
 
-### Boosting
+### J48/C4.5
 
-```{r}
-boosting.results <- read.csv("datasets/dataset_results_weka/other_meta/boosting.csv")
-```
+\begin{table}[ht]
+\centering
+\begin{tabular}{rlllllllllllll}
+  \hline
+ a    & b    & c    & d   & e   & f   & g   & h   & i  & j  & k  & l  & m  & n  & <-- classified as \\
+  \hline
+ 5071 & 2593 & 2258 & 315 & 122 &  72 &  39 &  18 &  3 &  2 &  4 &  2 &  1 &  2 &   | a = 1         \\
+ 3344 & 3746 & 3973 & 570 & 275 & 147 &  86 &  35 & 19 &  9 & 13 &  2 &  2 &  0 &   | b = 2         \\
+ 2137 & 3095 & 5346 & 922 & 481 & 256 & 159 &  71 & 38 & 20 & 19 &  4 &  4 &  3 &   | c = 3         \\
+ 1257 & 1906 & 4193 & 882 & 541 & 279 & 204 & 103 & 42 & 26 & 19 & 10 &  8 &  6 &   | d = 4         \\
+  643 & 1181 & 2787 & 697 & 517 & 367 & 244 & 136 & 60 & 52 & 33 &  9 & 11 & 11 &   | e = 5         \\
+  440 &  730 & 1968 & 573 & 444 & 352 & 269 & 134 & 64 & 42 & 36 & 16 & 16 & 12 &   | f = 6         \\
+  284 &  508 & 1417 & 438 & 395 & 282 & 230 & 169 & 79 & 58 & 43 & 12 & 14 &  8 &   | g = 7         \\
+  186 &  358 &  884 & 301 & 304 & 228 & 216 & 181 & 56 & 63 & 55 & 12 & 22 &  6 &   | h = 8         \\
+   95 &  191 &  550 & 199 & 205 & 190 & 182 & 132 & 59 & 47 & 45 & 10 & 22 & 14 &   | i = 9         \\
+   71 &  138 &  402 & 174 & 169 & 129 & 130 & 126 & 38 & 40 & 48 & 25 & 21 & 12 &   | j = 10        \\ 
+   55 &   92 &  294 & 120 & 141 & 114 & 116 & 107 & 58 & 44 & 35 & 13 & 17 & 13 &   | k = 11        \\
+   36 &   73 &  222 &  99 & 107 &  93 &  84 &  80 & 35 & 31 & 33 & 11 & 13 &  9 &   | l = 12        \\
+   37 &   49 &  178 &  74 &  73 &  64 &  84 &  78 & 33 & 39 & 29 & 11 & 13 &  9 &   | m = 13        \\
+   27 &   46 &  143 &  59 &  59 &  77 &  44 &  69 & 26 & 35 & 36 &  6 & 13 & 11 &   | n = 14        \\
+  \hline
+\end{tabular}
+\end{table}
 
-### Stacking
+[DISCUSS RESULTS]
 
-```{r}
-stacking.results <- read.csv("datasets/dataset_results_weka/other_meta/stacking.csv")
-```
+[FINAL CONCLUSION]
 
-## ROC curve and Confusion matrix
+\newpage
+# Change of plans
+As we have seen in the presented results in the sections above, the accuracy of our model is softly said not great. We top at an accuracy of [NUMBER] which is general seen as too low to be of use in daily life situation. In this section we explore more abrupt ways to increase the accuracy; think of restructuring or removing instances from our class variable, which we did not want to do at first.
 
-## Exploring more unconventional ways to increase Accuracy
-As we have seen in the presented results in the sections above, the accuracy of our model is softly said not great. We top at an accuracy of [NUMBER] which is general seen as too low to be of use in daily life situation. In this section we explore more abrupt ways to increase the accuracy; think of restructuring or removing instances, which we did not want to do at first, from our class variable.
-
+## Effects of removing instances
 ```{r Calculating amount of instances per value, include = FALSE}
 count.data <- final.data %>%
   group_by(time_in_hospital) %>%
@@ -742,22 +813,20 @@ kbl(diff.instances, booktabs = T) %>%
   column_spec(1, bold = T)
 ```
 
-Another option to improve accuracy could be a relabeling of the attribute. This method has the upside of retaining all instances. The downside of this method is that we create bigger data groups, thereby removing the chance of exactly determining how many days were spent in the hospital. While we cannot determine exactly how many days a patient spent in the hospital, we can separate visits based on classification, such as "short" or "average". So, classification is still possible but is less specific. This is the price to pay if we want a more accurate model. We considered a relabeling with four different valuations: 
+\newpage
+## A new research goal
+Another option to improve accuracy could be a relabeling of the attribute. This method has the upside of retaining all instances. The downside of this method is that we create bigger data groups, thereby removing the chance of exactly determining how many days were spent in the hospital. While we cannot determine exactly how many days a patient spent in the hospital, we can separate visits based on classification, such as "a brief visit" or "a longer visit". So, classification is still possible but is less specific. This is the price to pay if we want a more accurate model. We considered a relabeling with two different valuations: 
 \begin{enumerate}
-  \item Time spent in hospital is between one and three days;
-  \item Time spent in hospital is between four and six days; 
-  \item Time spent in hospital is between seven and nine days; and
-  \item Time spent in hospital is equal to or more than ten days. 
+  \item Time spent in hospital is within or equal to 5 days; and
+  \item Time spent in hospital is longer than five days.
 \end{enumerate}
 
-In the next code section, we mutate the time_in_hospital attribute, as described above. We also show the implications of relabeling in figures ... and ... . As we can see, the data is still very much positively skewed but has simply fewer classes. Therefore, some classes are relatively big (1 with > 30.000 instances) or small (4 with ~ 5.000 instances). (more?)
+In the next code section, we mutate the time_in_hospital attribute, as described above. We also show the implications of relabeling in figures ... and ... . As we can see, we now have two classes comprising of [NOT FINISHED]
 
 ```{r Creating new labels}
 final.data.label <- final.data %>%
-  mutate(time_in_hospital = case_when(time_in_hospital %in% c('1', '2', '3') ~ '1',
-                                      time_in_hospital %in% c('4', '5', '6') ~ '2',
-                                      time_in_hospital %in% c('7', '8', '9') ~ '3',
-                                      TRUE ~ '4')) %>%
+  mutate(time_in_hospital = case_when(time_in_hospital %in% c('1', '2', '3', '4', '5') ~ '1',
+                                      TRUE ~ '2')) %>%
   # Added 13 of October: Reshape data so that class variable is the last column
   # We did this manually with using the Explorer, but now we use the Experimenter,
   # and the only way to appoint a class variable is having it be the last column.
@@ -777,8 +846,7 @@ ggplot() +
 write.csv(final.data.label, "datasets/base_datasets/relabeled.csv", row.names = FALSE)
 ```
 
-Now that we have a new dataset, we turn to Weka once more to analyze the new dataset. The results of this are shown in table [NUMBER]. Having obtained results regarding both datasets, we can determine the differences. As expected, accuracy rose across the broad of classifiers; most experienced an increase of at least 30 percentage points, except for IBk, which rose 26 percentage points. IBk already had the least sufficient outcome in previous Weka runs, so logically we would not have expected it to become best-performing. When considering taking a final dataset to the next stage in our research, we must weigh if a less specific attribute is worth having better accuracy (and for every other metric, for that matter). As we already discussed, having a sense of the duration spent in the hospital is still present. Additionally, we can now predict more accurately by a large margin. Even now, classifiers only predict correctly half of the time, and is even worse when we do not relabel. In contrast, if we come put with a way to produce more sufficient outcomes with the initial dataset, we can always switch back. It seems that the relabeled dataset looks the most promising right now, and therefore we will continue our analysis with this dataset. However, we will report on the initial dataset in the next section as well. 
-
+Now that we have a new dataset, we turn to Weka once more to analyze the new dataset. The results of this are shown in table [NUMBER]. Having obtained results regarding both datasets, we can determine the differences. As expected, accuracy rose across the broad of classifiers; most experienced an increase of at least [NUMBER] percentage points, except for IBk, which rose [NUMBER] percentage points. IBk already had the least sufficient outcome in previous Weka runs, so logically we would not have expected it to become best-performing. When considering taking a final dataset to the next stage in our research, we must weigh if a less specific attribute is worth having better accuracy (and for every other metric, for that matter). As we already discussed, having a sense of the duration spent in the hospital is still present. Additionally, we can now predict more accurately by a large margin. Even now, classifiers only predict correctly half of the time, and is even worse when we do not relabel. In contrast, if we come put with a way to produce more sufficient outcomes with the initial dataset, we can always switch back. It seems that the relabeled dataset looks the most promising right now, and therefore we will continue our analysis with this dataset. However, we will report on the initial dataset in the next section as well. 
 
 ```{r Results relabeling}
 label.result <- read.csv("datasets/dataset_results_weka/base/relabeled.csv", sep = ";")
@@ -787,10 +855,73 @@ kbl(label.result, booktabs = T) %>%
   column_spec(1, bold = T)
 ```
 
-[[[[ Next up is determining which classifiers are most worthwhile regarding our research goals. As stated earlier, accuracy and precision are the most important metrics. The best option seems to be Simple Logistics with an accuracy of 56,53% and a precision of 0,523 - both are best-performing in their category. Deciding on a runner-up appears more challenging as J48 and Naïve Bayes both perform well. J48 has better accuracy (52,76%) than Naïve Bayes (51,28%), but Bayes outperforms J48 in almost every other aspect. This sometimes happens in far bigger margins than their difference in accuracy. For example, the dissimilarity for the ROC area is 0,071. To conclude, both classifiers seem as likely candidates for further analysis, and makes it is hard to decide which is the best. For that reason, in addition to taking Simple Logistics, both Naïve Bayes and J48 will be considered in further analysis as well.  ]]]]
+[DISCUSS FINDINGS]
 
-## ROC curve
-```{r}
+## Optimalization
+[INTRO]
+
+### Simple Logistics
+[INTRO]
+
+```{r SL optimalization}
+sl.results <- read.csv()
+```
+
+[DISCUSS]
+
+### Random Forest
+[INTRO]
+
+```{r RF optimalization}
+rf.results <- read.csv()
+```
+
+[DISCUSS]
+
+## Attribute selection
+[INTRODUCTION]
+
+### Correlation
+[INTRO]
+
+```{r Correlation - attribute selection}
+corr.results <- read.csv()
+```
+
+[DISCUSS]
+
+### Information gain
+[INTRO]
+
+```{r Information gain - attribute selection}
+infogain.results <- read.csv()
+```
+
+[DISCUSS]
+
+### Gain ratio
+[INTRO]
+
+```{r Gain ratio - attribute selection}
+gainr.results <- read.csv()
+```
+
+[DISCUSS]
+
+## Confusion matrices
+[INTRO]
+
+[MATRIX 1]
+
+[DISCUSS]
+
+[MATRIX 2]
+
+[DISCUSS]
+
+## A ROC curve
+[INTRO]
+```{r ROC curve}
 ## TEMP
 roc_data <- read.table("~/Desktop/roctest.arff", 
                    sep = ",", 
@@ -829,6 +960,9 @@ plt <- ggplot(data = roc_data,
 print(plt)
 ```
 
+[DISCUSS]
+
+[FINAL WORD]
 
 # Settings used
 (normal)
