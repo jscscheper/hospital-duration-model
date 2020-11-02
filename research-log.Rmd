@@ -696,7 +696,7 @@ We now observe table [NUMBER] and we can see that removing said attributes impro
 In this section, we look at the confusion matrices of the best-fitting versions of our chosen classifiers. Since we have a class variable with 14 values, a matrix would have a 14x14 structure. For the reason of that complexity, we have always looked at the weighted average when comparing models. Now that we want to make a final decision on which model we are going to use, with the fact that all our models' performances are relatively close to one another, it can help to look at the details for making a final decision.
 
 ### Naïve Bayes
-We will look at the outcome regarding Naïve Bayes first. The confusion matrix is shown in table [NUMBER]. When analyzing a confusion matrix it is essential know that the (longest) diagonal line represents all true predictions.
+We will look at the outcome regarding Naïve Bayes first. The confusion matrix is shown in table [NUMBER]. When analyzing a confusion matrix it is essential know that the (longest) diagonal line represents all true predictions. Off-diagonal elements are the ones that are mislabeled by a classifier. Naturally, the higher the diagonal values, the better as it indicates many correct predictions (i.e., a high TP rate). Naïve Bayes performed relatively well with an accuracy of 23.42%.
 
 \begin{table}[ht]
 \centering
@@ -722,10 +722,10 @@ We will look at the outcome regarding Naïve Bayes first. The confusion matrix i
 \end{tabular}
 \end{table}
 
-[DISCUSS RESULTS]
+When we observe the results, we see - again - that our data is positively skewed as the total instances decrease while the time in hospital spent increases. This is exactly the problem when predicting the exact time a patient is going to spent in the hospital; we have a lot of data regarding short visits and not so much with longer visits. Tackling this problem means more instances for longer visits, as we get more information regarding these instances. Something that we lack right now. In addition, the accuracy and precision per class variable also decreases with increasing total time spent in the hospital. For example, we only have four correct predictions when looking at 14 days spent in hospital, which is ... % of the total instances. Compare that to ... % for one day in hospital (a). 
 
 ### Simple Logistics
-Next up is the confusion matrix retrieved from the Simple Logistics classifier, which is depicted in table [NUMBER].
+Next up is the confusion matrix retrieved from the Simple Logistics classifier, depicted in table [NUMBER]. Simple Logistics had a better accuracy without removing any initial attributes, but we decided to use the one with fewer attributes regardless. This was that supplying unnecessary attributes for a small increase in accuracy is not worth the burden. Therefore, we have a Simple Logistics classifier that performs with a 23.47% accuracy.
 
 \begin{table}[ht]
 \centering
@@ -740,20 +740,21 @@ Next up is the confusion matrix retrieved from the Simple Logistics classifier, 
   646 & 1214 & 2920 & 1004 & 531 & 149 & 179 &  70 & 18 &  7 &  5 & 0 &  4 & 1 &   | e = 5         \\
   432 &  735 & 2087 &  848 & 492 & 175 & 180 & 103 & 24 & 11 &  5 & 0 &  2 & 2 &   | f = 6         \\
   256 &  518 & 1478 &  681 & 422 & 202 & 190 & 124 & 31 & 23 &  9 & 0 &  2 & 1 &   | g = 7         \\
-  203 &  316 & 955  &  479 & 341 & 157 & 233 & 115 & 35 & 30 &  5 & 0 &  2 & 1 &   | h = 8         \\
-   92 &  163 & 606  &  330 & 261 & 146 & 197 &  96 & 27 & 14 &  4 & 0 &  3 & 2 &   | i = 9         \\
-   60 &  125 & 454  &  233 & 218 & 111 & 181 &  74 & 36 & 16 &  8 & 0 &  3 & 4 &   | j = 10        \\
-   39 &   86 & 361  &  181 & 181 & 102 & 129 &  72 & 28 & 19 &  8 & 0 & 11 & 2 &   | k = 11        \\
-   34 &   57 & 255  &  142 & 133 &  78 & 115 &  58 & 24 & 16 &  5 & 0 &  5 & 4 &   | l = 12        \\
-   34 &   43 & 197  &   77 & 122 &  58 & 119 &  54 & 31 & 14 & 12 & 1 &  6 & 3 &   | m = 13        \\
-   18 &   35 & 167  &   79 &  85 &  67 &  91 &  43 & 29 & 21 &  6 & 0 &  9 & 1 &   | n = 14        \\
+  203 &  316 &  955 &  479 & 341 & 157 & 233 & 115 & 35 & 30 &  5 & 0 &  2 & 1 &   | h = 8         \\
+   92 &  163 &  606 &  330 & 261 & 146 & 197 &  96 & 27 & 14 &  4 & 0 &  3 & 2 &   | i = 9         \\
+   60 &  125 &  454 &  233 & 218 & 111 & 181 &  74 & 36 & 16 &  8 & 0 &  3 & 4 &   | j = 10        \\
+   39 &   86 &  361 &  181 & 181 & 102 & 129 &  72 & 28 & 19 &  8 & 0 & 11 & 2 &   | k = 11        \\
+   34 &   57 &  255 &  142 & 133 &  78 & 115 &  58 & 24 & 16 &  5 & 0 &  5 & 4 &   | l = 12        \\
+   34 &   43 &  197 &   77 & 122 &  58 & 119 &  54 & 31 & 14 & 12 & 1 &  6 & 3 &   | m = 13        \\
+   18 &   35 &  167 &   79 &  85 &  67 &  91 &  43 & 29 & 21 &  6 & 0 &  9 & 1 &   | n = 14        \\
   \hline
 \end{tabular}
 \end{table}
 
-[DISCUSS RESULTS]
+The presented table looks quite familiar to Naïve Bayes - positively skewed and not many predictions regarding higher valuations. We can see but is a little difficult to do so, that the number of correct predictions regarding a is significantly less than seen in Naïve Bayes. The numbers stand at 4.556 for Simple Logistics and 5.036 regarding Naïve Bayes. In contrast, the true positives of other class variables are higher across the board... but this effect wears off when the class variables increase. This effect could be the result of the weight Simple Logistics puts on attributes. It is a more complex classifier than Naïve Bayes. However, it does not result in a better-performing classifier.
 
 ### J48/C4.5
+Last but not least is J48/C4.5, where accuracy of 23.42% was achieved after attribute selection. The confusion matrix of the classifier is shown in table [NUMBER].
 
 \begin{table}[ht]
 \centering
@@ -779,9 +780,9 @@ Next up is the confusion matrix retrieved from the Simple Logistics classifier, 
 \end{tabular}
 \end{table}
 
-[DISCUSS RESULTS]
+Again, we see almost the same results in the performance. Some differences between individual class variables' performances, but not many dissimilarities compared with the other discussed classifiers. Another point regarding J48 is that the tree produced is massive and too complex to be informative. This is also related to the number of attributes and class variables. The reason given can be legitimate to renounce this classifier because of the great similarities between all involved classifiers.
 
-[FINAL CONCLUSION]
+Observing the chosen classifiers' confusion matrices did not result in a breakthrough in choosing the final model. As we already established before discussing the matrices, is that the classifiers perform almost perform the same. There are some differences in the accuracy per class variable, but this is not enough overall. Having an accuracy of around 23% is just not acceptable for a model that needs to exactly predict the time spent in the hospital. This is mostly due to the skewness of our data. For example, having more instances regarding longer visits would help determine the difference between the total time spent in the hospital. A model predicting the exact length in days is too good to be true; therefore, we want to explore different scenarios where a more accurate model is helpful. And, of course, thinking about methods to increase the accuracy. This is exactly what we are going to do in the next sections.
 
 \newpage
 # Change of plans
@@ -904,6 +905,15 @@ infogain.results <- read.csv()
 
 ```{r Gain ratio - attribute selection}
 gainr.results <- read.csv()
+```
+
+[DISCUSS]
+
+### Final decision
+[INTRO]
+
+```{r Final decision - attribute selection}
+
 ```
 
 [DISCUSS]
