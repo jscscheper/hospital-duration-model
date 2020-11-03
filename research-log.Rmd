@@ -93,29 +93,13 @@ tableMissingValues <- data.frame("Missing.Values" = tableMissingValues[1:6,],
                                  "Missing.Values.Percentage" = tableMissingValues[7:12,])
 rownames(tableMissingValues) <- myvars
 
-tableMissingValues['payer_code', 2]
-
 # Added 27-09
 library(naniar)
 encounter.data.missing <- replace(encounter.data, encounter.data == "?", NA)
 vis_miss(encounter.data.missing, warn_large_data = F)
 ```
 
-\begin{table}[ht]
-\centering
-\begin{tabular}{rrr}
-  \hline
- & Missing values & Missing Values [%] \\ 
-  \hline
-race & 2273.00 & 2.23 \\ 
-  weight & 98569.00 & 96.86 \\ 
-  payer\_code & 40256.00 & 39.56 \\ 
-  medical\_specialty & 49949.00 & 49.08 \\ 
-  gender & 3.00 & 0.00 \\ 
-  diag\_3 & 1423.00 & 1.40 \\ 
-   \hline
-\end{tabular}
-\end{table}
+[INSERT THE NEW TABLE ABOUT MISSING VALUES]
 
 As we notice in table 1, attribute weight is almost entirely made-up of missing values. For that reason, it is a candidate for removal. The same can be said for payer_code and medical_specialty, where `r tableMissingValues['payer_code', 2]`% and `r tableMissingValues['medical_specialty', 2]`% of values are missing, respectively. Payer_code has no significant value to our research goals and questions; therefore, it can be removed. Medical_specialty can be of value as it contains a range of useful information. Missing values can be set to 'Missing' or reevaluated based on other valuations; doing this is not without risk, as it is almost half of the attributes' values. Deleting all missing values is not doable as it removes half of all records! Setting it to 'Missing' seems to be the most logical option. Attributes race and diag_3 seem to have little amounts of missing data, but removing these values can alter our outcomes; therefore, we will use the same approach as to medical_specialty. Gender only has three missing values. Considering the amount does not account to even one percent, removal does not seem to harm, and gender is, in most cases, considered binary data.
 
@@ -164,10 +148,8 @@ table.dup <- data.frame('Initial number of records' = nrow(encounter.data),
 \centering
 \begin{tabular}{rrrr}
   \hline
- Initial number of records & Number of duplicates & Difference in percent \\ 
-  \hline
- 101766 & 16773 & -16.48 \\ 
-   \hline
+ Initial number of records & Number of duplicates & Difference in percent \\ \hline
+ 101766 & 16773 & -16.48 \\ \hline
 \end{tabular}
 \end{table}
 
@@ -700,10 +682,9 @@ We will look at the outcome regarding Naïve Bayes first. The confusion matrix i
 
 \begin{table}[ht]
 \centering
-\begin{tabular}{rlllllllllllll}
+\begin{tabular}{c|c|c|c|c|c|c|c|c|c|c|c|c|c|c}
   \hline
- a    & b    & c    & d     & e   & f   & g   & h   & i   & j  & k  & l & m  & n  & <-- classified as \\ 
-  \hline
+ a    & b    & c    & d     & e   & f   & g   & h   & i   & j  & k  & l & m  & n  & <-- classified as \\ \hline
  5036 & 2811 & 1968 &  450  & 153 &  46 &  21 &  11 &   3 &  2 &  1 & 0 &  0 &  0 & | a = 1           \\
  3523 & 4023 & 3037 &  931  & 426 & 149 &  50 &  41 &  33 &  4 &  1 & 0 &  2 &  1 & | b = 2           \\
  2334 & 3239 & 4250 & 1468  & 730 & 263 &  95 & 111 &  49 &  9 &  4 & 0 &  2 &  1 & | c = 3           \\
@@ -717,8 +698,7 @@ We will look at the outcome regarding Naïve Bayes first. The confusion matrix i
    46 &   81 &  241 &  170  & 155 & 134 &  80 & 170 &  53 & 42 & 20 & 0 & 13 & 14 & | k = 11          \\
    39 &   54 &  182 &  123  & 104 &  94 &  64 & 139 &  58 & 34 & 21 & 2 &  6 &  6 & | l = 12          \\
    40 &   36 &  127 &   85  &  96 &  70 &  67 & 138 &  50 & 24 & 24 & 1 & 11 &  2 & | m = 13          \\
-   24 &   31 &  122 &   66  &  69 &  61 &  46 & 106 &  49 & 33 & 26 & 2 & 12 &  4 & | n = 14          \\
-  \hline
+   24 &   31 &  122 &   66  &  69 &  61 &  46 & 106 &  49 & 33 & 26 & 2 & 12 &  4 & | n = 14          \\ \hline
 \end{tabular}
 \end{table}
 
@@ -729,10 +709,9 @@ Next up is the confusion matrix retrieved from the Simple Logistics classifier, 
 
 \begin{table}[ht]
 \centering
-\begin{tabular}{rlllllllllllll}
+\begin{tabular}{c|c|c|c|c|c|c|c|c|c|c|c|c|c|c}
   \hline
- a    & b    & c    & d    & e   & f   & g   & h   & i  & j  & k  & l & m  & n & <-- classified as \\ 
-  \hline
+ a    & b    & c    & d    & e   & f   & g   & h   & i  & j  & k  & l & m  & n & <-- classified as \\ \hline
  4556 & 3091 & 2566 &  217 &  53 &   7 &  11 &   1 &  0 &  0 &  0 & 0 &  0 & 0 &   | a = 1         \\
  3127 & 4167 & 4099 &  579 & 163 &  45 &  32 &   8 &  0 &  1 &  0 & 0 &  0 & 0 &   | b = 2         \\
  2029 & 3345 & 5645 & 1027 & 325 &  93 &  70 &  20 &  1 &  0 &  0 & 0 &  0 & 0 &   | c = 3         \\
@@ -746,8 +725,7 @@ Next up is the confusion matrix retrieved from the Simple Logistics classifier, 
    39 &   86 &  361 &  181 & 181 & 102 & 129 &  72 & 28 & 19 &  8 & 0 & 11 & 2 &   | k = 11        \\
    34 &   57 &  255 &  142 & 133 &  78 & 115 &  58 & 24 & 16 &  5 & 0 &  5 & 4 &   | l = 12        \\
    34 &   43 &  197 &   77 & 122 &  58 & 119 &  54 & 31 & 14 & 12 & 1 &  6 & 3 &   | m = 13        \\
-   18 &   35 &  167 &   79 &  85 &  67 &  91 &  43 & 29 & 21 &  6 & 0 &  9 & 1 &   | n = 14        \\
-  \hline
+   18 &   35 &  167 &   79 &  85 &  67 &  91 &  43 & 29 & 21 &  6 & 0 &  9 & 1 &   | n = 14        \\ \hline
 \end{tabular}
 \end{table}
 
@@ -758,10 +736,9 @@ Last but not least is J48/C4.5, where accuracy of 23.42% was achieved after attr
 
 \begin{table}[ht]
 \centering
-\begin{tabular}{rlllllllllllll}
+\begin{tabular}{c|c|c|c|c|c|c|c|c|c|c|c|c|c|c}
   \hline
- a    & b    & c    & d   & e   & f   & g   & h   & i  & j  & k  & l  & m  & n  & <-- classified as \\
-  \hline
+ a    & b    & c    & d   & e   & f   & g   & h   & i  & j  & k  & l  & m  & n  & <-- classified as \\ \hline
  5071 & 2593 & 2258 & 315 & 122 &  72 &  39 &  18 &  3 &  2 &  4 &  2 &  1 &  2 &   | a = 1         \\
  3344 & 3746 & 3973 & 570 & 275 & 147 &  86 &  35 & 19 &  9 & 13 &  2 &  2 &  0 &   | b = 2         \\
  2137 & 3095 & 5346 & 922 & 481 & 256 & 159 &  71 & 38 & 20 & 19 &  4 &  4 &  3 &   | c = 3         \\
@@ -775,8 +752,7 @@ Last but not least is J48/C4.5, where accuracy of 23.42% was achieved after attr
    55 &   92 &  294 & 120 & 141 & 114 & 116 & 107 & 58 & 44 & 35 & 13 & 17 & 13 &   | k = 11        \\
    36 &   73 &  222 &  99 & 107 &  93 &  84 &  80 & 35 & 31 & 33 & 11 & 13 &  9 &   | l = 12        \\
    37 &   49 &  178 &  74 &  73 &  64 &  84 &  78 & 33 & 39 & 29 & 11 & 13 &  9 &   | m = 13        \\
-   27 &   46 &  143 &  59 &  59 &  77 &  44 &  69 & 26 & 35 & 36 &  6 & 13 & 11 &   | n = 14        \\
-  \hline
+   27 &   46 &  143 &  59 &  59 &  77 &  44 &  69 & 26 & 35 & 36 &  6 & 13 & 11 &   | n = 14        \\ \hline
 \end{tabular}
 \end{table}
 
@@ -813,6 +789,7 @@ kbl(diff.instances, booktabs = T) %>%
   kable_styling(full_width = F) %>%
   column_spec(1, bold = T)
 ```
+[DISCUSS]
 
 \newpage
 ## A new research goal
@@ -865,7 +842,7 @@ kbl(label.result, booktabs = T) %>%
 [INTRO]
 
 ```{r SL optimalization}
-sl.results <- read.csv()
+#sl.results <- read.csv()
 ```
 
 [DISCUSS]
@@ -874,7 +851,7 @@ sl.results <- read.csv()
 [INTRO]
 
 ```{r RF optimalization}
-rf.results <- read.csv()
+#rf.results <- read.csv()
 ```
 
 [DISCUSS]
@@ -886,7 +863,7 @@ rf.results <- read.csv()
 [INTRO]
 
 ```{r Correlation - attribute selection}
-corr.results <- read.csv()
+#corr.results <- read.csv()
 ```
 
 [DISCUSS]
@@ -895,7 +872,7 @@ corr.results <- read.csv()
 [INTRO]
 
 ```{r Information gain - attribute selection}
-infogain.results <- read.csv()
+#infogain.results <- read.csv()
 ```
 
 [DISCUSS]
@@ -904,7 +881,7 @@ infogain.results <- read.csv()
 [INTRO]
 
 ```{r Gain ratio - attribute selection}
-gainr.results <- read.csv()
+#gainr.results <- read.csv()
 ```
 
 [DISCUSS]
@@ -933,41 +910,41 @@ gainr.results <- read.csv()
 [INTRO]
 ```{r ROC curve}
 ## TEMP
-roc_data <- read.table("~/Desktop/roctest.arff", 
-                   sep = ",", 
-                   comment.char = "@")
-names(roc_data) <- c("Instance_number", 
-                 "True_Positives",
-                 "False_Negatives",
-                 "False_Positives",
-                 "True_Negatives",
-                 "False_Positive_Rate",
-                 "True_Positive_Rate",
-                 "Precision",
-                 "Recall",
-                 "Fallout",
-                 "FMeasure",
-                 "Sample_Size",
-                 "Lift",
-                 "Threshold")
+#roc_data <- read.table("~/Desktop/roctest.arff", 
+#                   sep = ",", 
+#                   comment.char = "@")
+#names(roc_data) <- c("Instance_number", 
+#                 "True_Positives",
+#                 "False_Negatives",
+#                 "False_Positives",
+#                 "True_Negatives",
+#                 "False_Positive_Rate",
+#                 "True_Positive_Rate",
+#                 "Precision",
+#                 "Recall",
+#                 "Fallout",
+#                 "FMeasure",
+#                 "Sample_Size",
+#                 "Lift",
+#                 "Threshold")
 
-head(roc_data)
+#head(roc_data)
 
-library(ggpubr)
-colors <- c(classifier = "red", threshold = "blue")
-plt <- ggplot(data = roc_data,
-       mapping = aes(x = True_Positive_Rate, y = False_Positive_Rate)) +
-    geom_point(mapping = aes(color = "classifier")) +
-    geom_abline(aes(color = "threshold", 
-                    slope = 1, 
-                    intercept = 0)) + 
-    scale_color_manual(values = colors) +
-    xlab("True Positive Rate") +
-    ylab("False Positive Rate") +
+#library(ggpubr)
+#colors <- c(classifier = "red", threshold = "blue")
+#plt <- ggplot(data = roc_data,
+#       mapping = aes(x = True_Positive_Rate, y = False_Positive_Rate)) +
+#    geom_point(mapping = aes(color = "classifier")) +
+#    geom_abline(aes(color = "threshold", 
+#                    slope = 1, 
+#                    intercept = 0)) + 
+#    scale_color_manual(values = colors) +
+#    xlab("True Positive Rate") +
+#    ylab("False Positive Rate") +
     #theme_minimal() +
-    theme_pubr() +
-    theme(legend.title = element_blank())
-print(plt)
+#    theme_pubr() +
+#    theme(legend.title = element_blank())
+#print(plt)
 ```
 
 [DISCUSS]
