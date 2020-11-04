@@ -801,7 +801,7 @@ kbl(diff.instances, booktabs = T) %>%
   kable_styling(full_width = F) %>%
   column_spec(1, bold = T)
 ```
-Now that we have a new, temporary dataset, we turn to Weka once more and see if the rate of correctly classified instances has improved. The short-hand answer to that question is yes, it has improved, but not substantially enough to consider removing these instances for our final model. We performed the J48 and Simple Logistics classifiers again and observed an improvement of 1,13% compared to our first run (19,81% versus 20,94%) for J48. We noticed a similar trend for Simple Logistics. Here, the improvement is just 1,33%. The results are depicted in table [NUMBER] . Removing 6% of our instances for such little improvement in accuracy overall is not worthwhile; therefore, we can safely conclude that this method is not what we are looking for in determining a better accuracy.
+Now that we have a new, temporary dataset, we turn to Weka once more and see if the rate of correctly classified instances has improved. The short-hand answer to that question is yes, it has improved, but not substantially enough to consider removing these instances for our final model. We performed the J48 and Simple Logistics classifiers again and observed an improvement of 1,13% compared to our first run (19,81% versus 20,94%) for J48. We noticed a similar trend for Simple Logistics. Here, the improvement is just 1,33%. The results are depicted in table [NUMBER]. Removing 6% of our instances for such little improvement in accuracy overall is not worthwhile; therefore, we can safely conclude that this method is not what we are looking for in determining a better accuracy.
 
 \newpage
 ## A new research goal
@@ -978,6 +978,7 @@ In this section, we look at the confusion matrices of the best-fitting versions 
 The last thing we want to look at before deciding on a final model is the receiver operating characteristic (ROC) curve. This curve represents a fraction between the true positive rate and the false positive rate. The curve is essentially a representation of a confusion matrix. An ROC space is created by plotting the FPR and TPR as *x* and *y* axes to depict their relationship. A diagonal line divides this space; point above this line represent good results from a classifier (high TPR, low FPR), whereas points below the line present a not so good result (low TPR, high TPR). In this section, we take a look at both classifiers' ROC curves and make a decision regarding which model is final.
 
 ### Simple Logistics
+[INTRO]
 
 ```{r ROC curve}
 ## TEMP
@@ -1020,6 +1021,8 @@ The last thing we want to look at before deciding on a final model is the receiv
 
 [DISCUSS]
 
+### Random Forest
+
 ```{r ROC curve}
 ## TEMP
 #roc_data <- read.table("~/Desktop/roctest.arff", 
@@ -1061,6 +1064,7 @@ The last thing we want to look at before deciding on a final model is the receiv
 
 [discuss]
 
+### Final word
 [FINAL WORD]
 
 \newpage
