@@ -850,27 +850,7 @@ As we already discussed, having a sense of the duration spent in the hospital is
 
 When considering classifiers that are best for further use, we consider both Simple Logistics (78.55%) and Random Forest (78.72%) to be most worthwhile. They both scored best across every metric. We will try to optimize these classifiers to hopefully increase accuracy even more in the next sections.
 
-## Optimalization
-In the next section, we want to explore another set of optimization as other classifiers came out best than regarding the initial dataset. The meta learner CVParameterSelection evaluates of many iterations to find the best parameter settings with best-scoring accuracy.
-
-### Simple Logistics
--M
-
-```{r SL optimalization}
-sl.results <- read.csv("datasets/dataset_results_weka/optimalization/sl-relabeled.csv", sep = ";")
-```
-
-[DISCUSS]
-
-### Random Forest
-When deciding on optimal settings for Random Forest, is the most important parameter numIterations (I) (link:) AND SEED https://stackoverflow.com/questions/49565188/optimize-random-forest-parameters-in-weka
-
-```{r RF optimalization}
-rf.results <- read.csv("datasets/dataset_results_weka/optimalization/rf-relabeled.csv")
-```
-
-[DISCUSS]
-
+\newpage
 ## Attribute selection
 We already discussed an attribute selection regarding the initial dataset, but since we changed the class variable makes it necessary to weigh every attribute again. We consider the same meta learner and evaluators as before; that would be the evaluators CorrelationAttributeEval, InfoGainAttributeEval, and GainRatioAttributeEval. We will discuss the results of each method, as we did earlier.
 
@@ -912,18 +892,41 @@ As stated and discussed before, we will remove the attributes number_emergency a
 
 ```{r Final decision - attribute selection, include = FALSE}
 final.relabeled.result <- read.csv("datasets/dataset_results_weka/attributes/final-relabeled-attributes.csv", sep = ";")
-kbl(diff.instances, booktabs = T) %>%
+kbl(final.relabeled.result, booktabs = T) %>%
   kable_styling(full_width = F) %>%
   column_spec(1, bold = T)
 ```
 
-When removing below a score of 0.01, we would drop five attributes in total (number_emergency, pioglitazone, race, roisglitazone, and number_outpatient). Regarding a cut-off score of 0.05, we are removing 14 attributes and we would be left with a mere eleven attributes. [AFTER OPTIMALIZATION]
+When removing below a score of 0.01, we would drop five attributes in total (number_emergency, pioglitazone, race, rosiglitazone, and number_outpatient). Regarding a cut-off score of 0.05, we are removing 14 attributes and we would be left with a mere eleven attributes. Between the two classifiers we see different outcomes. When looking at Simple Logistics, we see an increase in accuracy with the cut-off score of 0.01, but a decrease in accuracy when handling a score of 0.05. The increase in accuracy is not very significant, it only account for an increase of 0.004%. In contrast, Random Forest does not experience an increase in accuracy with both scores. It drops 0.27% when a 0.01 cut-off is applied and a staggering 3.8% loss with 0.05. A significant loss in accuracy. This concludes that a removal of the 14 attributes is not worthwhile and, frankly, also not in the case of 0.01. Both classifiers do not experience a significant gain in accuracy and Random Forest is even losing numbers. However, we are still removing the number_emergency and number_outpatient features as these do not reflex our research goals of exploring ways to predict time spent in hospital.
 
+\newpage
+## Optimalization
+In the next section, we want to explore another set of optimization as other classifiers came out best than regarding the initial dataset. The meta learner CVParameterSelection evaluates of many iterations to find the best parameter settings with best-scoring accuracy.
+
+### Simple Logistics
+Once again, we turn to the classifier Simple Logistics for optimization purposes. When we did this once before, we already discussed all important parameters and their default settings. We will refrain ourselves to research every one of them once more, as we have seen that some do not have a great impact on the performance. Weka also advises to use some default settings, for example, with the heuristic stop (H) parameter. We already explored what the effects are if we play with this valuation, and saw no reason to change the valuation. Therefore, we only want to explore the maxBoostingIterations (M) and numBoostingIterations (I) parameters again, as we saw promising results from testing on the initial dataset.
+
+```{r SL optimalization, include = FALSE}
+sl.results <- read.csv("datasets/dataset_results_weka/optimalization/sl-relabeled.csv", sep = ";")
+```
+
+Looking at table [NUM], we can see that there has been tested with iterations ranging from 0 to 1500 in three steps for M, and iterations ranging from 0 to 750 in the same amount of steps for I. [more]
+
+### Random Forest
+Random Forest is a classifier we have not optimized before. The classifier has a bunch of parameters to play with, but we are only interested in one of them: numIterations (I). The (I) parameter is the amount of trees that are generated by the classifier, and the classifier will choose the smallest tree as the best. So the number of trees reflexes the chance of getting the most optimal tree; having a greater number of trees generated can, in theory, give bigger chances of getting a more optimal tree than with lower numbers. But there is an equilibrium for generating numbers trees and the chance of getting a more optimal tree. In a moment, there is not going to be a more optimal tree, and more iterations would only increase computing time. We want to explore these boundaries. \cite{RF-settings}
+
+```{r RF optimalization, include = FALSE}
+rf.results <- read.csv("datasets/dataset_results_weka/optimalization/rf-relabeled.csv")
+```
+
+[DISCUSS]
+
+\newpage
 ## Exploring other meta learners
-[INTRO]
+There are some other ways to improve accuracy, for example, by combining multiple predictions from multiple classifiers. This way of improving accuracy can be done with meta learners that are called ensemble learners. 'Ensemble' meaning 'a group of items viewed as a whole rather than individually' \cite{Word}. We already explored Random Forest, which is a ensemble learners and can be seen as an extension of Bagging. In addition, we are going to explore the ensemble learners Bagging, Boosting, Voting, and Stacking in this section.
 
 ### Bagging
-[intro]
+Bagging or Bootstrap Aggregation is used to reduce the variance. As stated before, Random Forest contains bagging elements to do just that. Reducing variance is important, as a high variance means that the model's results can change dramatically by random noise. Thereby making it sensitive to over-fitting.
 
 ```{r}
 
@@ -932,7 +935,16 @@ When removing below a score of 0.01, we would drop five attributes in total (num
 [discuss]
 
 ### Boosting
-[intro]
+Boosting classifiers are mostly used to reduce bias in a model. There are multiple algorithms available, such as Ada-Boost and Decision Trees. We are going to use Ada-Boost in this section as it is the most accepted meta-classifier for Boosting. A high bias can cause under-fitting by missing out on information and correlations between the class variable and indepedent variables.
+
+```{r}
+
+```
+
+[discuss]
+
+### Voting
+Voting is perhaps the most simple ensemble learners, but is still fairly effective. It works by selecting two or more classifiers, and selecting on what criteria all classifiers are going to be combined. The default setting for the combination rule is taking the average of probabilities, and that is what we are going to use. There are more options, but this is generally the most optimal rule. When all classifiers are combined, they can vote on what the outcome should be.
 
 ```{r}
 
@@ -941,7 +953,7 @@ When removing below a score of 0.01, we would drop five attributes in total (num
 [discuss]
 
 ### Stacking
-[intro]
+Stacking looks like Voting as both work with multiple classifiers and their results. However, there is a huge difference. Stacking does not 'vote' to get the most optimal outcome; it combines the predictions of classifiers into one single model, which is the meta-classifier. Stacking is used to increase accuracy.
 
 ```{r}
 
@@ -949,19 +961,24 @@ When removing below a score of 0.01, we would drop five attributes in total (num
 
 [discuss]
 
+\newpage
 ## Confusion matrices
-[INTRO]
+In this section, we look at the confusion matrices of the best-fitting versions of our chosen classifiers. Since we have a class variable with only 2 values, a matrix would have a 2x2 structure. Now that we want to make a final decision on which model we are going to use, with the fact that all our models' performances are relatively close to one another, it can help to look at the details for making a final decision.
 
-[MATRIX 1]
-
-[DISCUSS]
-
-[MATRIX 2]
+### Simple Logistics
 
 [DISCUSS]
 
+### Random Forest
+
+[DISCUSS]
+
+\newpage
 ## A ROC curve
-[INTRO]
+The last thing we want to look at before deciding on a final model is the receiver operating characteristic (ROC) curve. This curve represents a fraction between the true positive rate and the false positive rate. The curve is essentially a representation of a confusion matrix. An ROC space is created by plotting the FPR and TPR as *x* and *y* axes to depict their relationship. A diagonal line divides this space; point above this line represent good results from a classifier (high TPR, low FPR), whereas points below the line present a not so good result (low TPR, high TPR). In this section, we take a look at both classifiers' ROC curves and make a decision regarding which model is final.
+
+### Simple Logistics
+
 ```{r ROC curve}
 ## TEMP
 #roc_data <- read.table("~/Desktop/roctest.arff", 
@@ -1003,35 +1020,48 @@ When removing below a score of 0.01, we would drop five attributes in total (num
 
 [DISCUSS]
 
+```{r ROC curve}
+## TEMP
+#roc_data <- read.table("~/Desktop/roctest.arff", 
+#                   sep = ",", 
+#                   comment.char = "@")
+#names(roc_data) <- c("Instance_number", 
+#                 "True_Positives",
+#                 "False_Negatives",
+#                 "False_Positives",
+#                 "True_Negatives",
+#                 "False_Positive_Rate",
+#                 "True_Positive_Rate",
+#                 "Precision",
+#                 "Recall",
+#                 "Fallout",
+#                 "FMeasure",
+#                 "Sample_Size",
+#                 "Lift",
+#                 "Threshold")
+
+#head(roc_data)
+
+#library(ggpubr)
+#colors <- c(classifier = "red", threshold = "blue")
+#plt <- ggplot(data = roc_data,
+#       mapping = aes(x = True_Positive_Rate, y = False_Positive_Rate)) +
+#    geom_point(mapping = aes(color = "classifier")) +
+#    geom_abline(aes(color = "threshold", 
+#                    slope = 1, 
+#                    intercept = 0)) + 
+#    scale_color_manual(values = colors) +
+#    xlab("True Positive Rate") +
+#    ylab("False Positive Rate") +
+    #theme_minimal() +
+#    theme_pubr() +
+#    theme(legend.title = element_blank())
+#print(plt)
+```
+
+[discuss]
+
 [FINAL WORD]
-
-# Settings used
-(normal)
-#1) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W rules.ZeroR' -110658209263002404
-#(2) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W rules.OneR -- -B 6' -110658209263002404
-#(3) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W bayes.NaiveBayes' -110658209263002404
-#(4) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W functions.SimpleLogistic -- -I 0 -M 500 -H 50 -W 0.0' -110658209263002404
-#(5) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W lazy.IBk -- -K 1 -W 0 -A \"weka.core.neighboursearch.LinearNNSearch -A \\\"weka.core.EuclideanDistance -R first-last\\\"\"' -110658209263002404
-#(6) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W trees.J48 -- -C 0.25 -M 2' -110658209263002404
-#(7) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W trees.RandomTree -- -K 0 -M 1.0 -V 0.001 -S 1' -110658209263002404
-
-(remove_instances)
-#1) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W trees.RandomTree -- -K 0 -M 1.0 -V 0.001 -S 1' -110658209263002404
-#(2) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W functions.SimpleLogistic -- -I 0 -M 500 -H 50 -W 0.0' -110658209263002404
-#(3) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W bayes.NaiveBayes' -110658209263002404
-#(4) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W rules.OneR -- -B 6' -110658209263002404
-#(5) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W rules.ZeroR' -110658209263002404
-#(6) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W lazy.IBk -- -K 1 -W 0 -A \"weka.core.neighboursearch.LinearNNSearch -A \\\"weka.core.EuclideanDistance -R first-last\\\"\"' -110658209263002404
-#(7) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.0]\" -S 1 -W trees.J48 -- -C 0.25 -M 2' -110658209263002404
-
-(relabeled)
-# meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W rules.ZeroR
-#(1) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W rules.OneR -- -B 6' -110658209263002404
-#(2) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W trees.J48 -- -C 0.25 -M 2' -110658209263002404
-#(3) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W bayes.NaiveBayes' -110658209263002404
-#(4) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W functions.SimpleLogistic -- -I 0 -M 500 -H 50 -W 0.0' -110658209263002404
-#(5) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W lazy.IBk -- -K 1 -W 0 -A \"weka.core.neighboursearch.LinearNNSearch -A \\\"weka.core.EuclideanDistance -R first-last\\\"\"' -110658209263002404
-#(6) meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0 1.0 1.0; 1.0 0.0 1.0 1.0; 1.0 1.0 0.0 1.0; 1.0 1.0 1.0 0.0]\" -S 1 -W trees.RandomTree -- -K 0 -M 1.0 -V 0.001 -S 1' -110658209263002404
 
 \newpage
 # References
