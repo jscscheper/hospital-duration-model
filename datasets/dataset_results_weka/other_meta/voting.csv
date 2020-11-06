@@ -1,1 +1,8 @@
-﻿
+﻿Metric
+Accuracy
+TP.Rate
+FP.Rate
+Precision
+Recall
+F-Measure
+ROC-curve

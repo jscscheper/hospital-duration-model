@@ -1,1 +1,8 @@
-﻿
+﻿Metric;Old;New
+Accuracy;78.45%;78.77%
+TP.Rate;0.785;0.788
+FP.Rate;0.452;0.455
+Precision;0.769;0.773
+Recall;0.785;0.788
+F-Measure;0.766;0.768
+ROC-Curve;0.790;0.796
