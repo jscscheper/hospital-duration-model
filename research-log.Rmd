@@ -558,19 +558,21 @@ write.csv(final.data, "datasets/base_datasets/normal_dataset.csv", row.names = F
 # Determine quality metrics relevancy
 For the next part of our research, we will work on a way to predict the time spent in the hospital. Weka, a Java-based data analysis and algorithm interface, is used in this research. Its powerful interface makes it easy to work with comprehensive data modeling techniques.
 
-Weka comes with quite a few ways to evaluate results gathered from a classifier. When predicting a class variable, Weka reports of the number of true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN). These are essential values for evaluating (predicted) results after running on a classifier. Knowing these four crucial numbers, we can calculate quality metrics to determine how well a classifier works on the supplied dataset. The number of quality metrics to choose from is substantial, but we only need a couple to establish whether a classifier is worth-while. We look at the speed a classification is finished, the accuracy, precision, and recall of the results, the rates of true and false positives, F1-score measurement, determine a ROC area, and construct a confusion matrix.
+Weka comes with quite a few ways to evaluate results gathered from a classifier. When predicting a class variable, Weka reports of the number of true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN). In our case, this would be a correctly predicted duration of a hospital stay, a not correctly predicting the duration, a prediction that is classified as a correct duration is actually incorrect, and a prediction that was incorrect is actually a correct one, respectively. These are essential values for evaluating predicted results after running a classifier. 
 
-The speed (in seconds) at which a classifier finishes its process is of interest for determining whether a classifier is useful or not. Some classifications may be slower than others. For example, a Naïve Bayes is much quicker than performing a J48 on this dataset due to the complexity of the dataset - 70.000 instances and 44 attributes to consider - and because both classifications have different goals. Therefore, a slower classification is not necessarily worse than a faster one; it depends on what we are interested in researching, and if classifications are similar in end goals. When the latter is true, and there is a considerable difference in construction speed, we can dismiss the slower one. In most cases, other metrics may have the final verdict.
+Knowing these four crucial numbers, we can calculate quality metrics to determine how well a classifier works on the supplied dataset. The number of quality metrics to choose from is substantial, but we only need a couple to establish whether a classifier is worth-while. We look at the accuracy, precision, and recall of the results, the rates of true and false positives, F1-score measurement, determine a ROC area, and construct a confusion matrix.
 
 A confusion (or error) matrix represents the performance of an algorithm. It is a table with rows for the predicted instances, and the columns represent the instances of the actual class. The matrix reports on the number of FP, FN, TP, and TN. This representation allows for a more detailed analysis than a metric that specifies a certain value like accuracy. However, it can complicate when too many class variables need to be depicted. For example, our class attribute has 14 valuations and creates a confusion matrix of 196 (14x14) elements. It contains a lot of information; therefore, we introduce other quantity metrics that work more specific and are less complex.
 
-The number of instances correctly identified as either true positive or true negative is called the accuracy. This metric gives a peak in how "true" our classification is, or in other words, how many predictions are right. It is essential to know how accurate our classification is as we want the result (prediction) to be as close to the 'true' value.  
+The number of instances correctly identified as either true positive or true negative is called the accuracy. This metric gives a peak in how "true" our classification is, or in other words, how many predictions are right. In our case, predicting the right amount of days that a patient spends in the hospital. It is essential to know how accurate our classification is as we want the result (prediction) to be as close to the 'true' value.  
 
-Recall (also called sensitivity or the true positive rate) reports on the number of instances correctly identified as positive out of the total actual positives, and precision (also called positive predictive value) is the number of instances correctly identified as positives of the total instances identified as positive. Both metrics give an insight into the relevance of a classification. The recall is related to the type II error rate and gives information about the completeness. In contrast, precision is more related to the type I error rate, which we are more interested in as this is about false positives. Having a high precision means good quality, which - mostly - translates to good accuracy. Precision can be a good metric in deciding whether a classification is worth-while or not.
+Precision and recall are also two important metrics. Precision is the balance between TPs and all other classified positive results (TP + FP). The importance of this metric comes from the fact that we can check on the balance between truly correct predicted instances and falsely correct predicted instances. I.e., what proportion of the positive identifications was actually correct? It highlights how well our classifier performs on the data we fed to it. We want to determine the duration of hospital stays so that professionals can looks at the differences between outcomes and potentially make an effective plan to reduce the duration of visits and thereby costs. It is therefore important to have a model with as little false correct predictions, as this can have effect on the liability of future procedures to reduce duration of visits. It can have less effect than was calculated on, potentially increasing costs than was planned. Our goal is therefore only to bring advice to hospitals and institutions if we can confidently predict a duration of an inpatient visits.
 
-An F1-score is the mean of the precision and recall; it measures the effectiveness of identification done by the recall and precision metrics. It can range from 0 to 1 (perfect precision and recall). In other words, the F1-score conveys the balance between precision and recall. Since we want to balance between precision and recall, the F1-score is a perfect metric to do this with. 
+Recall is a metric that represents the sensitivity of an outcome. It looks at what proportion of actual positives was identified correctly (TP / TP + FN). Remember that False Negatives are actual correct predictions thought to be incorrect. So it reflexes on the number of missing correct predicted instances. This can also have an impact on the effectiveness of a procedure based on our model. It is the opposite of the message from precision. If False Negatives are with many - and the False Positives rate is low - then a procedure instituted on our model could potentially have done more to reduce the duration of visits, but our model was not able to learn more about the true data, and became more biased towards false predictions. It determines if a said procedure based on our model can reach full potential regarding its goals: reducing duration as much as possible to make health care more affordable.
 
-The last metric we introduce is the ROC area, which can be depicted in a ROC curve. The ROC curve is created by plotting the recall (or TPR) as a function of the false-positive rate. ROC analysis arranges a way to select optimal models and to discharge suboptimal ones.
+An F1-score is the mean of the precision and recall; it measures the effectiveness of the recall and precision metrics by calculating the mean. It can range from 0 to 1 (perfect precision and recall). In other words, the F1-score conveys the balance between precision and recall.
+
+The last metric we introduce is the ROC area, which can be depicted in a ROC curve. The ROC curve is created by plotting the true-positive rate as a function of the false-positive rate. ROC analysis arranges a way to select optimal models and to discharge suboptimal ones. It helps with visualizing a complex confusion matrix. As we have 14 valuations in our class variable, it becomes really complex job to interpret every bit of information depicted. A ROC area makes this part easier. The ROC area (AUC) is a value that represents how much a model can separate between valuation of the class variable. Higher the AUC, the better capability of the model to distinguishing between the duration of visits.
 
 \begin{figure}[h!]
 $$\text{ACC} = \frac{\text{TP} + \text{TN}}{\text{P} + \text{N}}$$
@@ -812,7 +814,7 @@ Another option to improve accuracy could be a relabeling of the attribute. This 
   \item Time spent in hospital is longer than five days (long visit).
 \end{enumerate}
 
-In the next code section, we mutate the time_in_hospital attribute, as described above. We also show the implications of relabeling in figures ... and ... . As we can see, we now have two classes comprising of 55.000 and 19.000 instances, respectively. [discuss more?]
+In the next code section, we mutate the time_in_hospital attribute, as described above. We also show the implications of relabeling in figures ... and ... . As we can see, we now have two classes comprising of 55.000 and 19.000 instances, respectively.
 
 ```{r Creating new labels}
 final.data.label <- final.data %>%
@@ -961,7 +963,7 @@ kbl(boosting.results, booktabs = T) %>%
 We observe table [NUMBER], where the results of the AdaBoost are depicted. We see a similar result as seen with the Bagging classifier; the accuracy does not seem to improve across these meta-learners. AdaBoost may seem to not be able to get the accuracy of a stronger learner up. It may be that AdaBoost seems more appropriate for a learner with weak results (≤ 1/2 accuracy). Therefore, we will not go further with the model created by AdaBoost.
 
 ### Voting
-Voting is perhaps the most simple ensemble learners, but is still fairly effective. It works by selecting two or more classifiers, and selecting on what criteria all classifiers are going to be combined. The default setting for the combination rule is taking the average of probabilities, and that is what we are going to use. There are more options, but this is generally the most optimal rule. When all classifiers are combined, they can vote on what the outcome should be.
+Voting is perhaps the most simple ensemble learners, but is still fairly effective. It works by selecting two or more classifiers, and selecting on what criteria all classifiers are going to be combined. The default setting for the combination rule is taking the average of probabilities, but we will use Majority Voting. When all classifiers are combined, they can vote on what the outcome should be.
 
 ```{r Voting, include = FALSE}
 vote.results <- read.csv("datasets/dataset_results_weka/other_meta/voting.csv", sep = ";")
@@ -970,10 +972,10 @@ kbl(vote.results, booktabs = T) %>%
   column_spec(1, bold = T)
 ```
 
-[discuss]
+Looking at table [number], we can see the best results retrieved from the performance of the Vote classifier. We tested on every used classifier, not regarding their past performances. The outcomes based on Simple Logistics and Random Forest have been adjusted to their optimal parameter settings, as discussed before. We see that the Vote classifier produces a relatively high accuracy, precision and recall. It performed as the runner-up after Random Forest, with only a difference of 0.11% in accuracy. The FP rate of the Vote is quite higher than that of Simple Logistics, which performed third-best. Looking at the results we can conclude that the Random Forest algorithm is the biggest contender. For that reason, we will not include the Vote as a potential candidate for the final model.
 
 ### Stacking
-Stacking looks like Voting as both work with multiple classifiers and their results. However, there is a huge difference. Stacking does not 'vote' to get the most optimal outcome; it combines the predictions of classifiers into one single model, which is the meta-classifier. Stacking is used to increase accuracy.
+Stacking looks like Voting as both work with multiple classifiers and their results. However, there is a huge difference. Stacking does not 'vote' on which classifier is the best-performing; it contains a meta-learner that learns how to best combine the predictions from sub-models. It can therefore increase our accuracy. We will test the stacking classifier on both Random Forest and Simple Logistics with Logistics as the meta-learner, as this classifier is widely used. Again, we test with the most optimal parameter settings.
 
 ```{r Stacking, include = FALSE}
 stacking.results <- read.csv("datasets/dataset_results_weka/other_meta/stacking.csv", sep = ";")
@@ -981,111 +983,90 @@ kbl(stacking.results, booktabs = T) %>%
   kable_styling(full_width = F) %>%
   column_spec(1, bold = T)
 ```
-
-[discuss]
+We now observe table [NUMBER], where we see that Stacking actually increased the accuracy to a new highest level. It did this to 79.04%, outperforming both Simple Logistics and Random Forest. The difference in performance between all models is not significant, but a better and more accurate model is always welcomed. We therefore will take the Stacking outcome to the next section as potentially our final model.
 
 \newpage
 ## Confusion matrices
-In this section, we look at the confusion matrices of the best-fitting versions of our chosen classifiers. Since we have a class variable with only 2 values, a matrix would have a 2x2 structure. Now that we want to make a final decision on which model we are going to use, with the fact that all our models' performances are relatively close to one another, it can help to look at the details for making a final decision.
-
-### Simple Logistics
-
-[DISCUSS]
+In this section, we look at the confusion matrices of the best-fitting versions of our chosen classifiers, which are Random Forest and the combining of classifiers in the Stacking meta-learner. Since we have a class variable with only 2 values, a matrix would have a 2x2 structure. Now that we want to make a final decision on which model we are going to use, with the fact that all our models' performances are relatively close to one another, it can help to look at the details for making a final decision.
 
 ### Random Forest
+First we are going to look at table [NUMBER]. Here, the confusion matrix retrieved from the best-performing outcome of Random Forest is depicted. Random Forest scored an accuracy of 78.77% at its most optimal. The matrix is based upon these results.
 
-[DISCUSS]
+\begin{table}[ht]
+\centering
+\begin{tabular}{c|c|c}
+  \hline
+ a     &  b   & <-- classified as \\ \hline
+ 47830 & 3672 & |   a = 1         \\
+ 11283 & 7653 & |   b = 2         \\
+  \hline
+\end{tabular}
+\end{table}
+
+We observe the results from the matrix in table [NUMBER]. The data is still positively skewed as `r 47830 + 11283` instances are classified as 'a' and `r 3672 + 7653` as 'b'. There seems to be a difference in metrics scores between classes. The b class scores less than class a. For example, the TP.Rate for a is set at 0,929 and b at 0,404, which means that there is still a bias for class a. In contrast, the correctly predicted instances have been upped significantly and we can look at the differences between the classes more precise. It is still possible to determine what needs to change to reduce duration of hospital visits, to a much better degree than with the initial model.
+
+### Stacking
+Next up is the Stacking classifier, which scored the best metrics scores seen thus far. We achieve this by combining the two best-performing classifiers, Random Forest and Simple Logistics. The scored accuracy is set at a 79.04%. The accompanying confusion matrix is depicted in table [NUMBER]. 
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{c|c|c}
+  \hline
+ a     & b    & <-- classified as \\ \hline
+ 47669 & 3833 & |   a = 1         \\
+ 10928 & 8008 & |   b = 2         \\
+ \hline
+\end{tabular}
+\end{table}
+
+Looking at the results, we see a picture complementary to that of Random Forest. Only the amount of positives is bigger with a tiny margin (with `r 47669 + 8008 - 47830 - 7653` instances, to be exact). The difference comes from the fact that there are less true positives but more true negatives than seen with Random Forest. Looking at the distribution of predicted instances, we can make a decision regarding the classifier that will wrap our model.
+
+### Final word
+Now that we have a better picture of the distribution of predictions, we can decide on a final model to base our findings upon. As already discussed, the accuracy and other metrics from Stacking looked a bit better than Random Forest alone. It therefore was not totally necessary to discuss both confusion matrices, as it was most likely to take Stacking as final model. But looking at both matrices, we can determine where the differences are; although Stacking predicts less correct on class 1 (47.830 vs 47.669 instances), it does relatively better on predicting class 2 than Random Forest (7.653 versus 8.008 instances). This means that the total correctly predicted instances (TN + TP) is higher with Stacking than observed in Random Forest. For that reason, Stacking will be appointed as our final model.
 
 \newpage
 ## A ROC curve
 The last thing we want to look at before deciding on a final model is the receiver operating characteristic (ROC) curve. This curve represents a fraction between the true positive rate and the false positive rate. The curve is essentially a representation of a confusion matrix. An ROC space is created by plotting the FPR and TPR as *x* and *y* axes to depict their relationship. A diagonal line divides this space; point above this line represent good results from a classifier (high TPR, low FPR), whereas points below the line present a not so good result (low TPR, high TPR). In this section, we take a look at both classifiers' ROC curves and make a decision regarding which model is final.
 
-### Simple Logistics
-[INTRO]
+```{r ROC curve Stacking}
+roc_data <- read.table("~/Desktop/roctest.arff", 
+                   sep = ",", 
+                   comment.char = "@")
+names(roc_data) <- c("Instance_number", 
+                 "True_Positives",
+                 "False_Negatives",
+                 "False_Positives",
+                 "True_Negatives",
+                 "False_Positive_Rate",
+                 "True_Positive_Rate",
+                 "Precision",
+                 "Recall",
+                 "Fallout",
+                 "FMeasure",
+                 "Sample_Size",
+                 "Lift",
+                 "Threshold")
 
-```{r ROC curve}
-## TEMP
-#roc_data <- read.table("~/Desktop/roctest.arff", 
-#                   sep = ",", 
-#                   comment.char = "@")
-#names(roc_data) <- c("Instance_number", 
-#                 "True_Positives",
-#                 "False_Negatives",
-#                 "False_Positives",
-#                 "True_Negatives",
-#                 "False_Positive_Rate",
-#                 "True_Positive_Rate",
-#                 "Precision",
-#                 "Recall",
-#                 "Fallout",
-#                 "FMeasure",
-#                 "Sample_Size",
-#                 "Lift",
-#                 "Threshold")
+head(roc_data)
 
-#head(roc_data)
-
-#library(ggpubr)
-#colors <- c(classifier = "red", threshold = "blue")
-#plt <- ggplot(data = roc_data,
-#       mapping = aes(x = True_Positive_Rate, y = False_Positive_Rate)) +
-#    geom_point(mapping = aes(color = "classifier")) +
-#    geom_abline(aes(color = "threshold", 
-#                    slope = 1, 
-#                    intercept = 0)) + 
-#    scale_color_manual(values = colors) +
-#    xlab("True Positive Rate") +
-#    ylab("False Positive Rate") +
-    #theme_minimal() +
-#    theme_pubr() +
-#    theme(legend.title = element_blank())
-#print(plt)
+library(ggpubr)
+colors <- c(classifier = "red", threshold = "blue")
+plt <- ggplot(data = roc_data,
+       mapping = aes(x = True_Positive_Rate, y = False_Positive_Rate)) +
+    geom_point(mapping = aes(color = "classifier")) +
+    geom_abline(aes(color = "threshold", 
+                    slope = 1, 
+                    intercept = 0)) + 
+    scale_color_manual(values = colors) +
+    xlab("True Positive Rate") +
+    ylab("False Positive Rate") +
+    theme_minimal() +
+    theme_pubr() +
+    theme(legend.title = element_blank())
+print(plt)
 ```
 
 [DISCUSS]
-
-### Random Forest
-
-```{r ROC curve}
-## TEMP
-#roc_data <- read.table("~/Desktop/roctest.arff", 
-#                   sep = ",", 
-#                   comment.char = "@")
-#names(roc_data) <- c("Instance_number", 
-#                 "True_Positives",
-#                 "False_Negatives",
-#                 "False_Positives",
-#                 "True_Negatives",
-#                 "False_Positive_Rate",
-#                 "True_Positive_Rate",
-#                 "Precision",
-#                 "Recall",
-#                 "Fallout",
-#                 "FMeasure",
-#                 "Sample_Size",
-#                 "Lift",
-#                 "Threshold")
-
-#head(roc_data)
-
-#library(ggpubr)
-#colors <- c(classifier = "red", threshold = "blue")
-#plt <- ggplot(data = roc_data,
-#       mapping = aes(x = True_Positive_Rate, y = False_Positive_Rate)) +
-#    geom_point(mapping = aes(color = "classifier")) +
-#    geom_abline(aes(color = "threshold", 
-#                    slope = 1, 
-#                    intercept = 0)) + 
-#    scale_color_manual(values = colors) +
-#    xlab("True Positive Rate") +
-#    ylab("False Positive Rate") +
-    #theme_minimal() +
-#    theme_pubr() +
-#    theme(legend.title = element_blank())
-#print(plt)
-```
-
-[discuss]
 
 ### Final word
 [FINAL WORD]

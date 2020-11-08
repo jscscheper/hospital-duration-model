@@ -1,8 +1,8 @@
-﻿Metric
-Accuracy
-TP.Rate
-FP.Rate
-Precision
-Recall
-F-Measure
-ROC-curve
+﻿Metric;ZeroR;OneR;J48;Naïve Bayes;Simple Logistics;IBk;Random Forest;Vote 
+Accuracy;73.12%;76.31%;77.79%;72.80%;78.62%;66.71%;78.77%;78.66%
+TP.Rate;0.731;0.762;0.778;0.731;0.786;0.667;0.788;0.787
+FP.Rate;0.731;0.540;0.454;0.363;0.467;0.522;0.455;0.498
+Precision;0;0.740;0.761;0.745;0.772;0.664;0.773;0.776
+Recall;0.731;0.762;0.778;0.731;0.786;0.667;0.788;0.787
+F-Measure;0;0.792;0.761;0.733;0.765;0.666;0.768;0.757
+ROC-curve;0.500;0.611;0.718;0.753;0.789;0.573;0.796;0.644
