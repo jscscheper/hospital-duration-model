@@ -1021,15 +1021,15 @@ Next up is the Stacking classifier, which scored the best metrics scores seen th
 
 Looking at the results, we see a picture complementary to that of Random Forest. Only the amount of positives is bigger with a tiny margin (with `r 47669 + 8008 - 47830 - 7653` instances, to be exact). The difference comes from the fact that there are less true positives but more true negatives than seen with Random Forest. Looking at the distribution of predicted instances, we can make a decision regarding the classifier that will wrap our model.
 
-### Final word
+### Conclusion
 Now that we have a better picture of the distribution of predictions, we can decide on a final model to base our findings upon. As already discussed, the accuracy and other metrics from Stacking looked a bit better than Random Forest alone. It therefore was not totally necessary to discuss both confusion matrices, as it was most likely to take Stacking as final model. But looking at both matrices, we can determine where the differences are; although Stacking predicts less correct on class 1 (47.830 vs 47.669 instances), it does relatively better on predicting class 2 than Random Forest (7.653 versus 8.008 instances). This means that the total correctly predicted instances (TN + TP) is higher with Stacking than observed in Random Forest. For that reason, Stacking will be appointed as our final model.
 
 \newpage
 ## A ROC curve
-The last thing we want to look at before deciding on a final model is the receiver operating characteristic (ROC) curve. This curve represents a fraction between the true positive rate and the false positive rate. The curve is essentially a representation of a confusion matrix. An ROC space is created by plotting the FPR and TPR as *x* and *y* axes to depict their relationship. A diagonal line divides this space; point above this line represent good results from a classifier (high TPR, low FPR), whereas points below the line present a not so good result (low TPR, high TPR). In this section, we take a look at both classifiers' ROC curves and make a decision regarding which model is final.
+The last thing we want to look at before deciding on a final model is the receiver operating characteristic (ROC) curve. This curve represents a fraction between the true positive rate and the false positive rate. The curve is essentially a representation of a confusion matrix. An ROC space is created by plotting the FPR and TPR as *x* and *y* axes to depict their relationship. A diagonal line divides this space; point above this line represent good results from a classifier (high TPR, low FPR), whereas points below the line present a not so good result (low TPR, high FPR). In this section, we take a look at the ROC curve of Stacking and analyze its results.
 
 ```{r ROC curve Stacking}
-roc_data <- read.table("~/Desktop/roctest.arff", 
+roc_data <- read.table("datasets/dataset_results_weka/roc_curve/stacking.arff", 
                    sep = ",", 
                    comment.char = "@")
 names(roc_data) <- c("Instance_number", 
@@ -1047,29 +1047,25 @@ names(roc_data) <- c("Instance_number",
                  "Lift",
                  "Threshold")
 
-head(roc_data)
-
 library(ggpubr)
 colors <- c(classifier = "red", threshold = "blue")
 plt <- ggplot(data = roc_data,
-       mapping = aes(x = True_Positive_Rate, y = False_Positive_Rate)) +
-    geom_point(mapping = aes(color = "classifier")) +
+       mapping = aes(x = False_Positive_Rate, y = True_Positive_Rate)) +
+    geom_point(mapping = aes(color = "classifier result")) +
     geom_abline(aes(color = "threshold", 
                     slope = 1, 
                     intercept = 0)) + 
     scale_color_manual(values = colors) +
-    xlab("True Positive Rate") +
-    ylab("False Positive Rate") +
+    xlab("False Positive Rate") +
+    ylab("True Positive Rate") +
     theme_minimal() +
     theme_pubr() +
     theme(legend.title = element_blank())
 print(plt)
 ```
+Looking at figure [number], we see the ROC curve of stacking depicted. The red line is the classifier's performance and the blue line divides the ROC space. We notice that our classifier performs well above the diagonal line, which means the classification is good. The optimum point seems to be around a TPR of 0.65 and FPR of 0.25. This means that the positive cases that are predicted are actually positive ones, which is an indicating of high recall. A high recall/sensitivity is something we strive for. The Area under the ROC, which also one of our chosen metrics, is set at 0.803 and can be used for as an accuracy indicator. A high ROC Area means good accuracy. Our final model scores descent enough values to be a good model. 
 
-[DISCUSS]
-
-### Final word
-[FINAL WORD]
+Our next goal is to create a JavaWrapper that is able to accept new instances and analyze these on the bases of our model. The wrapper can be found in the following BitBucket repository: [ INSERT LINK  ].
 
 \newpage
 # References
