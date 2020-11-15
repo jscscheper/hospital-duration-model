@@ -22,6 +22,10 @@ knitr::opts_chunk$set(tidy=TRUE, echo=FALSE, message=FALSE, warning=FALSE, fig.a
 \tableofcontents
 
 \newpage
+# Introduction
+
+# Materials and Methods
+
 # Results
 ## Data acquisition
 All information used in this article was obtained from a database, consisting of 41 tables and totals 117 features, such as demographics (like gender, race, and age), inpatient or outpatient, and (in-hospital) mortality. \cite{OrgData} Data came from 130 hospitals in the USA for over ten years (1998-2008) and contained around 74 million unique visits by 18 million unique patients. This research used information that needed to accede to the following specifications: 
@@ -262,6 +266,10 @@ While observing figure 5, which is a PCA plot with every numeric attribute and g
 ## Final dataset
 After removing whole attributes and some instances, our final dataset and recoding and revaluing others contain 70.443 records and 50 attributes. We parted ways with a total of 5 attributes and `r format(round(as.numeric(101766-70443), 1), nsmall=0, big.mark=".", decimal.mark=",")`, which is a net loss of 30.8%.
 
+## Machine Learning
+
+## JavaWrapper
+
 \newpage
 # Discussion
 There has been a couple of recoding of attributes, for example, the introduction of the icu_related attribute and, as a consequence, the removal of three redundant attributes. Some other attributes still can be recoded, thereby creating a more efficient data structure. An example of such an occurrence is the attributes for primary, secondary, and final diagnosis; these attributes are now categorized according to their ICD code. As we are mostly interested in the diabetes category, constructing a new structure with the categories 'Diabetes-related' and 'Others' would create a binary valuation, which is very efficient for machine learning algorithms. The danger of removing so many instances is a great reduction in available information, which could be useful in further analysis down the road. Another example could be a new attribute regarding the number of total visits, which would retire the attributes for the number of inpatients, outpatient, and emergency visits. Removal of these attributes would create a more vague interpretation of visits of patients.
@@ -279,6 +287,9 @@ Looking at the dataset in a broader picture, we cleaned up many redundant instan
 This article's goal was to clean up and better the structure of the dataset, which was retrieved from an outside source. We removed many instances and sometimes whole attributes, whereas others got merged and, therefore, helped create a better dataset structure. We can conclude that the cleanup and bettering of the structure is accomplished. The dataset is now ready for the machine learning process.
 
 For new research or analysis accompanying this dataset, we like to address some additional changes to better the dataset structure. As discussed, some attributes can be merged or filled according to a different set of rules. For example, the attribute medical_specialty could be used in a different research setting - it contains much information but was ultimately removed due to its enormous amount of missing values. Other research initiatives could be more interested in this particular attribute.
+
+
+## Project proposal for minor 
 
 \newpage
 # References
