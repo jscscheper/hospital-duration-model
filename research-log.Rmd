@@ -1,6 +1,6 @@
 ---
 title: "Research log"
-author: "Dennis Scheper"
+author: "Dennis Scheper - 373689"
 date: "`r Sys.Date()`"
 output:
   pdf_document:
@@ -17,7 +17,11 @@ header-includes:
 \selectfont
 
 ```{r setup, include=FALSE, warning=FALSE, message=FALSE}
-knitr::opts_chunk$set(message=FALSE, warning=FALSE, fig.align = "center")
+knitr::opts_chunk$set(message=FALSE, warning=FALSE)
+```
+
+```{r, echo = FALSE, out.width = '100%', out.height = '110%', fig.align = 'center'}
+knitr::include_graphics('misc/hospital.jpg')
 ```
 
 \newpage
@@ -26,10 +30,9 @@ knitr::opts_chunk$set(message=FALSE, warning=FALSE, fig.align = "center")
 
 \newpage
 # Original dataset
-Date: 11 September, 2020 (week 1)
 
 ## Introduction
-The article, "Impact of HbA1c Measurement on Hospital Readmission Rates: Analysis of 70,000 Clinical Database Patient Records" states that hyperglycemia management has a significant impact on the outcome and readmission rates hospitalized patients. The authors based this conclusion on the comprehensive assessment of 70.000 diabetes patient records retrieved from 140 US hospitals. The results that depict the relationship between readmission rates and HbA1c levels can further enlargement already existing diabetes tactics to reduce readmission rates.
+The article, "Impact of HbA1c Measurement on Hospital Readmission Rates: Analysis of 70,000 Clinical Database Patient Records" states that hyperglycemia management has a significant impact on the outcome and readmission rates hospitalized patients. The authors based this conclusion on the comprehensive assessment of 70.000 diabetes patient records retrieved from 140 US hospitals. The results that depict the relationship between readmission rates and HbA1c levels can further enlargement already existing diabetes tactics to reduce readmission rates.\cite{OrgData}
 
 ## Dataset and Attributes Information
 All information used in this article comes from a database consisting of 41 tables and totals 117 features, such as demographics (like gender, race, and age), inpatient or outpatient, and (in-hospital) mortality. Data came from 130 hospitals in the USA for over ten years (1998-2008) and contained around 74 million unique visits by 18 million unique patients. This research used information that needs to accede to the following specifications: 
@@ -44,12 +47,11 @@ Of these five criteria points, 101.000 encounters fulfilled all specifications. 
 
 The initial dataset consists of 55 attributes, with the class attribute being an encounter of one patient. As there are way too many attributes to describe, please refer to the codebook for all descriptions; we only look at some essential attributes and their type and possible valuations. The age of a patient is nominal and is grouped into ten-year intervals. The admission type or the specific reason a patient was hospitalized came in 9 distinct values is nominal. Some attributes are numeric and count, such as the number of lab procedures, the number of medications, and the number of emergency visits. The database consists of three diagnosis attributes, which can have 848, 923, and 954 distinct values, respectively. The values are based on ICD9 three-letter codes and are of the nominal type. Other vital attributes are whether a patient changed medications (with the values 'no change' and 'change'; nominal type) or had diabetes medication ('yes' or 'no' values and nominal typing). Twenty-four other attributes depict whether medicine is prescribed or not, if prescribed, then if the dosage was increased ('up'), decreased ('down'), or stayed the same ('steady') during the encounter. Readmission rates were calculated by looking at a nominal type ('Readmitted') with the possible valuations of '<30' for a patient that was readmitted within 30 days, '>30' for a patient that was readmitted after 30 days, and 'No' for patients that were not readmitted. The authors' goal was to determine whether a relationship between readmission rates and HbA1c measurement exists; therefore, they introduced a new attribute 'HbA1c' with four different valuations, based on the information from the database: 1) no HbA1c test performed; 2) HbA1c performed and in the normal range; 3) HbA1c performed and the result is greater than 8% with no change in diabetic medication; and 4) Hb1Ac performed, the result is more significant than 8%, and diabetic medication was changed.
 
-## Research Question
-Is it possible, using machine learning techniques to predict the duration of a hospital visit based on issues related to diabetes? 
+## Research Goal
+Is it possible, using machine learning techniques to predict the duration of an inpatient hospital visit?
 
 \newpage
 # EDA (Exploratory Data Analysis)
-_(14 September, 2020)_ 
 
 This section will perform an exploratory data analysis (EDA) on the dataset described above. We can explore our dataset with an EDA and determine if any correlations exist between attributes and undermine any missing values. If any exist, we deal with them accordingly, looking to repair these values or remove them entirely. Additionally, we will look at variations between and in attributes for determining which ones are of most importance and interest to our research goals. 
 
@@ -57,7 +59,6 @@ First, we load in our used packages, mostly used to visualize data and the data 
 
 ```{r Load used packages and read in some important files}
 # Load used packages
-library(formattable)
 library(plyr)
 library(dplyr, warn.conflicts = FALSE)
 library(tidyr)
@@ -67,7 +68,6 @@ library(grid)
 library(gridExtra)
 library(hexbin)
 library(foreign)
-library()
 library(kableExtra)
 
 # Load in used data
@@ -80,7 +80,8 @@ codebook <- read.csv(file = 'misc/codebook.csv', sep = ';',
 
 ```
 
-```{r Codebook}
+\newpage
+```{r Codebook, fig.align = "center"}
 # Read codebook via kbl
 kable(codebook, "latex", 
       caption = "Codebook with information about attributes", 
@@ -108,8 +109,9 @@ summary(encounter.data)
 ## Missing values
 As we see in the result determined by the glimpse() function, the columns race, weight, payer_code, gender, diag_3, and medical specialty have some or significant amounts of missing values. To get a better picture, we will zoom in on these attributes and determine the amount and the percentage of missing values.
 
-```{r Determine missing values}
-myvars <- c('race', 'weight', 'payer_code', 'medical_specialty', 'gender', 'diag_3')
+```{r Determine missing values, fig.align = "center"}
+myvars <- c('race', 'weight', 'payer_code', 
+            'medical_specialty', 'gender', 'diag_3')
 amountRecords <- length(rownames(encounter.data))
 tableMissingValues <- encounter.data %>%
   summarise_each_(funs("TotalMissing" = 
@@ -126,13 +128,13 @@ tableMissingValues <- data.frame("Missing.Values" =
 rownames(tableMissingValues) <- myvars
 
 kable(tableMissingValues, "latex", booktabs = T,
-      caption = "Attributes that are missing values and their the amount of missing data" ) %>%
+      caption = "Attributes that are missing values 
+      and their the amount of missing data" ) %>%
   kable_styling(full_width = F, latex_options = "hold_position") %>%
   column_spec(1, bold = T)
 ```
-
-```{r Missing data graph, fig.cap="\\label{fig:figs}Missing values per attribute (depicted in black).", echo=FALSE}
-# Added 27-09
+\newpage
+```{r Missing data graph, fig.cap="\\label{fig:figs}Missing values per attribute (depicted in black).", echo=FALSE, fig.align = "center"}
 library(naniar)
 encounter.data.missing <- replace(encounter.data, encounter.data == "?", NA)
 vis_miss(encounter.data.missing, warn_large_data = F)
@@ -162,8 +164,6 @@ encounter.data <- encounter.data %>%
 encounter.data$hba1c_res <- as.factor(encounter.data$hba1c_res)
 ```
 
-(Added on 24-10)
-
 We have many near-zero variance variables comprised in our dataset. For example, the attribute examide consists of entirely one level with no missing values. For that reason, it is a zero-variance attribute. This attribute is not informative and will not help in predicting an outcome. All other (near) zero-variance attributes were removed as they would increase computing times if kept. We are talking about the following eighteen attributes:
 
 ```{r Remove near-zero variables}
@@ -173,11 +173,9 @@ encounter.data <- encounter.data %>%
   select(-c(removal.names))
 ```
 
-(Date: 18-20 September, 2020)
-
 Before we start analyzing our dataset, it is crucial to check on duplicates as our dataset contains multiple inpatient visits for some patients. These observations cannot be statistically independent and would create noise. We thus declare that only one encounter per patient is optimal.
 
-```{r Finding duplicates}
+```{r Finding duplicates, fig.align = "center"}
 duplicateCheck <- encounter.data %>%
   group_by(patient_nbr) %>%
   summarise(count = n()) %>%
@@ -231,16 +229,17 @@ p3 <- ggplot(agg) +
        labs(x ="Age", y = "Total counts")
 ```
 
-```{r Base variations graph one, fig.cap="\\label{fig:figs}Race distributed with gender", echo=FALSE}
+\newpage
+```{r Base variations graph one, fig.cap="\\label{fig:figs}Race distributed with gender", echo=FALSE, fig.align = "center"}
 # Arrange p1 and p2 in a multiplot and leave p3 on its own
 grid.arrange(p1)
 ```
-
-```{r Base variations graph two, fig.cap="\\label{fig:figs}Age distributed with gender", echo=FALSE}
+\newpage
+```{r Base variations graph two, fig.cap="\\label{fig:figs}Age distributed with gender", echo=FALSE, fig.align = "center"}
 grid.arrange(p2)
 ```
-
-```{r Base variations graph three, fig.cap="\\label{fig:figs}Age distributed with A1C test result", echo=FALSE}
+\newpage
+```{r Base variations graph three, fig.cap="\\label{fig:figs}Age distributed with A1C test result", echo=FALSE, fig.align = "center"}
 grid.arrange(p3)
 ```
 
@@ -262,7 +261,8 @@ encounter.data <- encounter.data %>%
   mutate(discharge_disposition_id = 
            ifelse(discharge_disposition_id %in% c(13, 14, 19, 20, 21),
                   'ICU patient', 'Non-ICU patient'))
-# Now that we changed the labels, let us discover how many ICU and non-ICU patients we have
+# Now that we changed the labels, let us discover 
+# how many ICU and non-ICU patients we have
 encounter.data <- encounter.data %>%
   # All columns need to be equal to each other
   mutate(icu_or_non = ifelse(admission_source_id == discharge_disposition_id 
@@ -292,15 +292,16 @@ p3 <- ggplot(agg) +
        labs(x ="ICU or non-ICU patient", y = "Total counts")
 ```
 
-```{r ICU vs. non-ICU graph one, fig.cap="\\label{fig:figs}ICU statistics distributed with gender", echo=FALSE}
+\newpage
+```{r ICU vs. non-ICU graph one, fig.cap="\\label{fig:figs}ICU statistics distributed with gender", echo=FALSE, fig.align = "center"}
 grid.arrange(p1)
 ```
-
-```{r ICU vs. non-ICU graph two, fig.cap="\\label{fig:figs}ICU statistics distributed with race", echo=FALSE}
+\newpage
+```{r ICU vs. non-ICU graph two, fig.cap="\\label{fig:figs}ICU statistics distributed with race", echo=FALSE, fig.align = "center"}
 grid.arrange(p2)
 ```
-
-```{r ICU vs. non-ICU graph three, fig.cap="\\label{fig:figs}ICU statistics distributed with A1C test result", echo=FALSE}
+\newpage
+```{r ICU vs. non-ICU graph three, fig.cap="\\label{fig:figs}ICU statistics distributed with A1C test result", echo=FALSE, fig.align = "center"}
 grid.arrange(p3)
 ```
 
@@ -359,15 +360,16 @@ p3 <- ggplot(agg) +
        labs(x ="Final diagnosis [category]", y = "Total counts")
 ```
 
-```{r Diagnosis graph one, fig.cap="\\label{fig:figs}Primary diagnosis distributed with gender", echo=FALSE}
+\newpage
+```{r Diagnosis graph one, fig.cap="\\label{fig:figs}Primary diagnosis distributed with gender", echo=FALSE, fig.align = "center"}
 grid.arrange(p1)
 ```
-
-```{r Diagnosis graph two, fig.cap="\\label{fig:figs}Secondary diagnosis distributed with gender", echo=FALSE}
+\newpage
+```{r Diagnosis graph two, fig.cap="\\label{fig:figs}Secondary diagnosis distributed with gender", echo=FALSE, fig.align = "center"}
 grid.arrange(p2)
 ```
-
-```{r Diagnosis graph three, fig.cap="\\label{fig:figs}Final diagnosis distributed with gender", echo=FALSE}
+\newpage
+```{r Diagnosis graph three, fig.cap="\\label{fig:figs}Final diagnosis distributed with gender", echo=FALSE, fig.align = "center"}
 grid.arrange(p3)
 ```
 
@@ -409,11 +411,12 @@ p2 <- p2 + facet_wrap(~gender) +
     theme(legend.position = 'none')
 ```
 
-```{r Medical speciality graph one, fig.cap="\\label{fig:figs}Medical specialty distributed with age groups and divided into gender", echo=FALSE}
+\newpage
+```{r Medical speciality graph one, fig.cap="\\label{fig:figs}Medical specialty distributed with age groups and divided into gender", echo=FALSE, fig.align = "center"}
 grid.arrange(p1)
 ```
-
-```{r Medical speciality graph two, fig.cap="\\label{fig:figs}Medical specialty distributed with age groups and divived into gender", echo=FALSE}
+\newpage
+```{r Medical speciality graph two, fig.cap="\\label{fig:figs}Medical specialty distributed with age groups and divived into gender", echo=FALSE, fig.align = "center"}
 grid.arrange(p2)
 ```
 
@@ -451,19 +454,20 @@ p4 <- p4 + facet_wrap(~gender) +
        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
-```{r Readmission graph one, fig.cap="\\label{fig:figs}Readmitted distributed with race and divided into gender", echo=FALSE}
+\newpage
+```{r Readmission graph one, fig.cap="\\label{fig:figs}Readmitted distributed with race and divided into gender", echo=FALSE, fig.align = "center"}
 grid.arrange(p1)
 ```
-
-```{r Readmission graph two, fig.cap="\\label{fig:figs}Readmitted distributed with age and divided into gender", echo=FALSE}
+\newpage
+```{r Readmission graph two, fig.cap="\\label{fig:figs}Readmitted distributed with age and divided into gender", echo=FALSE, fig.align = "center"}
 grid.arrange(p2)
 ```
-
-```{r Readmission graph three, fig.cap="\\label{fig:figs}Readmitted distributed with primary diagnosis and divided into gender", echo=FALSE}
+\newpage
+```{r Readmission graph three, fig.cap="\\label{fig:figs}Readmitted distributed with primary diagnosis and divided into gender", echo=FALSE, fig.align = "center"}
 grid.arrange(p3)
 ```
-
-```{r Readmission graph four, fig.cap="\\label{fig:figs}Readmitted distributed with secondary diagnosis and divided into gender", echo=FALSE}
+\newpage
+```{r Readmission graph four, fig.cap="\\label{fig:figs}Readmitted distributed with secondary diagnosis and divided into gender", echo=FALSE, fig.align = "center"}
 grid.arrange(p4)
 ```
 
@@ -473,6 +477,7 @@ Comparing the results in figures 15 and 16, we see a familiar trend: the increas
 
 Since we have multiple diagnosis categories but are somewhat interested in diabetes only, we can alter these attributes to have only two valuations ('diabetes' and 'other'). However, doing this can affect later analysis as we remove potentially valuable information. 
 
+\newpage
 ## Distribution - numeric attributes
 We discussed many categorical data attributes, now turn to our few numeric data. It is important to have a good distribution between numeric data. If the range of distribution is too large, then normalization is necessary. We construct multiple histograms, which we get through the histogram.plotter() function.
 
@@ -503,11 +508,13 @@ numeric.normal <- wrapper(numeric.data)
 numeric.log <- wrapper(numeric.data.log)
 ```
 
-```{r, fig.cap="\\label{fig:figs}Numeric data presented in histograms without any normalization", echo=FALSE}
+\newpage
+```{r, fig.cap="\\label{fig:figs}Numeric data presented in histograms without any normalization", echo=FALSE, fig.align = "center"}
 knitr::include_graphics('figures/distribution_his_1.pdf')
 ```
 
-```{r, fig.cap="\\label{fig:figs}Numeric data presented in histograms on a log-2 scale", echo=FALSE}
+\newpage
+```{r, fig.cap="\\label{fig:figs}Numeric data presented in histograms on a log-2 scale", echo=FALSE, fig.align = "center"}
 knitr::include_graphics('figures/distribution_his_2.pdf')
 ```
 
@@ -524,7 +531,7 @@ melted.data <- numeric.data %>%
   melt()
 ```
 
-```{r Heatmap graph one, fig.cap="\\label{fig:figs}Heatmap of numeric attributes, with red depicted as a strong correlation, orange as a (small) correlation, and yellow as no correlation", echo=FALSE}
+```{r Heatmap graph one, fig.cap="\\label{fig:figs}Heatmap of numeric attributes, with red depicted as a strong correlation, orange as a (small) correlation, and yellow as no correlation", echo=FALSE, fig.align = "center"}
 # Construct the heatmap
 ggplot(data = melted.data, aes(x = Var1, y = Var2, fill = value)) +
 geom_tile() + 
@@ -532,7 +539,7 @@ geom_tile() +
   theme(axis.text.x = element_text(angle = 90))
 ```
 
-```{r Heatmap graph two, fig.cap="\\label{fig:figs}Attribute time spent in hospital plotted against age group", echo=FALSE}
+```{r Heatmap graph two, fig.cap="\\label{fig:figs}Attribute time spent in hospital plotted against age group", echo=FALSE, fig.align = "center"}
 # Is the amount of time spent in hospital age-dependent?
 encounter.data %>%
   count(age, time_in_hospital) %>%
@@ -540,13 +547,14 @@ encounter.data %>%
     geom_tile(mapping = aes(fill = n))
 ```
 
-```{r Heatmap graph three, fig.cap="\\label{fig:figs}Attribute num_medications and num_lab_procedures plotted against each other", echo=FALSE, include=FALSE}
+```{r Heatmap graph three, fig.cap="\\label{fig:figs}Attribute num_medications and num_lab_procedures plotted against each other", echo=FALSE}
 # Is there a correlation between num_lab_procedures and num_medications?
 encounter.data %>%
   ggplot() +
    geom_hex(mapping=aes(x = num_lab_procedures, y = num_medications))
 ```
 
+\newpage
 Our heatmap (shown in figure 19) shows a strong correlation as red, a small correlation as orange, and no correlation as yellow. The attributes that stand out are, for example, num_medications-time_in_hospital, num_procedures-num_medications, and hba1c_res-num_medications. As we can see, it is mostly the num_medication attribute that has some correlation. Others do not stand out that much. We can conclude that most of the attributes are non-correlated, at least for the numeric attributes. 
 
 Looking at figure 20, we observe that the age groups above [40-50) increases in total counts; consequently, the total time spent in the hospital before release also increases. We can, therefore, conclude that the time_in_hospital attribute is dependent on a patient's age. Finally, we zoom in on two attributes with a (small) correlation depicted in figure 19. Figure 21 shows the result of zooming in on num_medications and num_lab_procedures; the result shows that most encounters have a valuation between 15-20 medications and 40-60 amount of lab procedures. The result also shows a lot of outliers, which normalization could solve.
@@ -559,11 +567,13 @@ cc.pca <- prcomp(numeric.data,
                  scale. = TRUE)
 ```
 
+\newpage
 ```{r Correlation, fig.cap="\\label{fig:figs}Variance per numeric attribute", echo=FALSE}
-plot(cc.pca, type = 'l', main = "Variation between numeric attributes")
+plot(cc.pca, type = 'l', 
+     main = "Variation between numeric attributes")
 ```
-
-```{r Ggbiplot fourteen valuations, fig.cap="\\label{fig:figs}A PCA with all numeric attributes, plotted against the class variable time_spent_hospital, with fourteen different valuations", echo=FALSE, include=FALSE}
+\newpage
+```{r Ggbiplot fourteen valuations, fig.cap="\\label{fig:figs}A PCA with all numeric attributes, plotted against the class variable time_spent_hospital, with fourteen different valuations"}
 library(ggbiplot)
 ggbiplot(cc.pca, obs.scale = 1, var.scale = 1, 
          groups = as.factor(encounter.data$time_in_hospital),
@@ -576,11 +586,13 @@ ggbiplot(cc.pca, obs.scale = 1, var.scale = 1,
 \newpage
 Since we adjusted the labels of the class variable, we need to perform a PCA once more. Figure 22 depicted a class variable with 14 different valuations; now we only have two. The results are depicted in figure 23. While we look at figure 23, we can see that the valuations still overlap quite a bit. But there is a clearer difference between them; we can see that a blue and red group are still a little separated from each other but they still overlap in the middle. This is most likely because of splitting the class variable into a group with lower and higher valuations.
 
-```{r Ggbiplot two valuations, fig.cap="\\label{fig:figs}A PCA with all numeric attributes, plotted against the class variable time_spent_hospital, with two different valuations", echo=FALSE, include=FALSE}
-# Added 10-11
+\newpage
+```{r Ggbiplot two valuations, fig.cap="\\label{fig:figs}A PCA with all numeric attributes, plotted against the class variable time_spent_hospital, with two different valuations"}
 encounter.label <- encounter.data %>%
-  mutate(time_in_hospital = case_when(time_in_hospital %in% c('1', '2', '3', '4', '5') ~ 'brief',
-                                      TRUE ~ 'long'))
+  mutate(time_in_hospital = 
+           case_when(time_in_hospital %in% 
+                       c('1', '2', '3', '4', '5') ~ 'brief',
+                       TRUE ~ 'long'))
 
 ggbiplot(cc.pca, obs.scale = 1, var.scale = 1,
          groups = as.factor(encounter.label$time_in_hospital),
@@ -591,7 +603,6 @@ ggbiplot(cc.pca, obs.scale = 1, var.scale = 1,
 
 \newpage
 # A Clean Dataset
-## 28th of September
 In this section, we will remove all unnecessary attributes and instances, as discussed in the EDA. Many filters and mutations have already been performed throughout the EDA, but not all have made it and seems to be scattered around - to give a more clear picture of the final, clean dataset, we perform all filtering, mutations, and relabeling that made it to the final dataset, again.
 
 ```{r Restructering and removal of abdundant data}
@@ -651,7 +662,8 @@ final.data <- final.data %>%
   # Remove all redundant attributes
   select(-c('encounter_id', 'patient_nbr', 'weight', 'payer_code', 
             'medical_specialty', 'diag_2', 'diag_3','admission_source_id', 
-            'discharge_disposition_id', 'admission_type_id', removal.names)) %>%
+            'discharge_disposition_id', 'admission_type_id', 
+            removal.names)) %>%
   relocate(time_in_hospital, .after = last_col())
 
 # Write final dataset to datafile
@@ -684,7 +696,7 @@ The last metric we introduce is the ROC area, which can be depicted in a ROC cur
 # Machine learning algorithm performances
 We will perform a multitude of algorithms. We are interested in performing with Naïve Bayes, Simple Logistics, Nearest Neighbour (IBk), a decision tree in the form of a J48/C4.5, and a Random Tree. Besides, we also include ZeroR and OneR to measure baseline performance. Weka gives outcome for every class valuation (so in our case 1 to 14); we take the average sum of these outcomes, as it is better for comparison with other classifiers. The results are depicted in table 4.
 
-```{r Load results retrieved from Weka}
+```{r Load results retrieved from Weka, fig.align = "center"}
 # Results will be loaded in like this,
 # but future code block will not be included due to repetitiveness
 normal.result <- read.csv("datasets/dataset_results_weka/base/normal.csv", 
@@ -706,7 +718,7 @@ To determine the best possible algorithm, we need to play with some of our chose
 ### J.48/C4.5
 First, we look at the parameter settings of the tree algorithm J48/C4.5. Here we have to deal with two parameters: the confidence factor parameter (C) and the minimal number of objects (M). The C value determines the amount of pruning performed; a small value corresponds to heavy pruning, whereas a large one to little pruning. The default is set to 0.25, and we will let the algorithm test with values ranging from 0.1 up to 0.5 in steps of 10. We set the limit to 0.5 as above; it will cause little to no pruning. \cite{Pruning-J48} Parameter M's default is set to 2, which means that the minimum instances per leaf guarantees that at each split, at least 2 of the branches will have the minimum number of instances. Increasing these values means that leaves become bigger. We test with a range from 2 to 10 in steps of 1. The results are shown in table 5.
 
-```{r Results J48 optimalization, echo=FALSE}
+```{r Results J48 optimalization, echo=FALSE, fig.align = "center"}
 j48.results <- read.csv("datasets/dataset_results_weka/optimalization/j48-normal.csv",
                         sep = ';', fileEncoding="UTF-8-BOM")
 kbl(j48.results, booktabs = T,
@@ -714,13 +726,14 @@ kbl(j48.results, booktabs = T,
   kable_styling(full_width = F, latex_options = "hold_position") %>%
   column_spec(c(1, 3, 5), bold = T)
 ```
+
 Looking at the table 5, we observe three columns of settings that caused a given accuracy, depicted beside every used setting, respectively. We first looked at the outcomes of the individual parameter setting. Thereafter we combined a few of these settings to find the most optimum parameter settings. The confidence factor shows a pattern where lower values give higher accuracy; it means that we perform more pruning (reducing the decision tree's size), which leaves us with better outcomes. Nevertheless, we have to be careful with this parameter to overfit our model on the training data we provide. Therefore, we want to consider this value carefully. As for parameter M, we see an opposite pattern happening; increasing this value comes with better accuracy. With the default setting (a value of 2) returning 19.55% accuracy, we see an increase of `r 20.88 - 19.55`% percentage points as we set this to 5. With a value of 10, the accuracy becomes its most optimal point yet: 21.80%. In combining both optimal settings, we get an accuracy of 23.28%, also the highest in the Combination column. Optimizing this algorithm's settings, we see an increase of `r 23.28 - 19.55`% at the finish line. Truthfully, it is not a significant increase from its baseline performance, but it is still a better result. Considering we performed cross-validation on the confidence factor and the outcome looks promising not to be overfitted, we can take these settings and conclude that this is the most optimum form of J48 regarding our research.
 
 \newpage
 ### Simple Logistics
 Now we turn to Simple Logistics (SL). SL has the advantage of built-in attribute selection. This means that it stops adding SimpleLinearRegression models when the cross-validation classification error no longer decreases. \cite{SL-model} This algorithm has quite a few parameters to its disposal, but we will not refrain from checkout every one of them, as not each one is relevant. Here we deal with the following set of parameters: useAIC (A), heuristicStop (H), maxBoostingIterations (M), numBoostingIterations (I), and weightTrimBeta (W). A determines when to stop iterations of adding models. This is an alternative to cross-validation. H is a value that decides whether a run is stopped if no new error minimum has not been reached in the last iteration of H. Weka's advice is to use the default value, but we are interested in its effects when we change this value. M sets a maximum number of iterations for LogiBoost. The default is set to 500, and it is advised to use a higher number in bigger datasets, which is the case for us. I  is a counterpart of M in which sets a fixed number of iterations for LogiBoost. If < 0, the number is cross-validated, or a stopping criterion on the training set is used, which is the default. Moreover, W states that only instances carrying (1 - W)% of the previous iteration weight are made available for the next one, resulting in fewer instances but maybe a more accurate model. We depict our findings in the table 6.
 
-```{r Results SL optimalization, echo=FALSE}
+```{r Results SL optimalization, echo=FALSE, fig.align = "center"}
 sl.results <- read.csv("datasets/dataset_results_weka/optimalization/sl-normal.csv", 
                        sep = ';', fileEncoding="UTF-8-BOM")
 kbl(sl.results, booktabs = T,
@@ -735,7 +748,7 @@ All parameters involved do not have a big impact on improving the accuracy of th
 ### Naïve Bayes
 As discussed earlier, Naïve Bayes is a relatively simple algorithm with just a few parameter settings, and therefore we optimized it manually. We had two options to research and present our findings in table 7, depicted underneath. These options are: 1) using a kernel density estimator rather than a normal distribution (K), and 2) using supervised discretization (D). The K option is a way to estimate the probability density function of a variable; in a sense, it is smoothing out the data a bit, in a different way than via the normal distribution. Alternatively, it weighs observations differently depending on how far from a certain point we are evaluating. The D parameter considers the class value, whereas the default, unsupervised discretization, does not. Therefore, we expect better results as the filter will break our attributes into bins that provide the most information about the class variable. We cannot combine the two parameters as that would create conflict.
 
-```{r Results Bayes optimization, echo=FALSE}
+```{r Results Bayes optimization, echo=FALSE, fig.align = "center"}
 bayes.results <- read.csv("datasets/dataset_results_weka/optimalization/bayes-normal.csv",
                           sep = ';', fileEncoding="UTF-8-BOM")
 kbl(bayes.results, booktabs = T,
@@ -753,7 +766,7 @@ Weka contains a meta-learner called 'AttributeSelectedClassifier.' This meta lea
 ### Correlation
 We look at the CorrelationAttributeEval, which calculates the correlation between each attribute and the class variable. When we run an evaluator, we look for values that outline a moderate-to-high or negative correlation, ranging from 1 to -1. We want to avoid attributes with a near-zero or zero correlation, as these attributes can potentially harm our model's performance. Therefore, we want to drop these attributes. The Ranker search method will be used here.
 
-```{r Results correlation attribute evaluation, echo=FALSE}
+```{r Results correlation attribute evaluation, echo=FALSE, fig.align = "center"}
 corr.results <- read.csv("datasets/dataset_results_weka/attributes/correlation-normal.csv",
                          sep = ";", fileEncoding="UTF-8-BOM")
 kbl(corr.results, booktabs = T,
@@ -768,7 +781,7 @@ We observe the results in the table 8, and it is not great, to say the least. Ou
 ### Info Gain
 Next up is an interesting evaluator called InfoGainAttributeEval, which looks at the information gain or entropy for each attribute for the output/class variable. Calculated values can range between 0 (no information) and 1 (maximum information). Attributes with a high valuation contribute more to the model than lower values do, as they reduce entropy more. There is the potential of removing attributes with a low valuation that could increase accuracy. Like we did in the correlation evaluator, we use the Ranker search method once more. We depict our results and findings in the table 9.
 
-```{r Results info gain attribute evaluation, echo=FALSE}
+```{r Results info gain attribute evaluation, echo=FALSE, fig.align = "center"}
 info.results <- read.csv("datasets/dataset_results_weka/attributes/info_gain-normal.csv",
                          sep = ";", fileEncoding="UTF-8-BOM")
 kbl(info.results, booktabs = T,
@@ -783,7 +796,7 @@ As we have seen in the section about correlation, we see that the same attribute
 ### Gain Ratio
 This evaluator looks a lot like the one we just discussed. It is an enhancement of the InfoGain evaluator, with a normalized score. This method measures the significance of attributes concerning the class variable based on a gain ratio in more detail. A higher gain ratio means it reduces more entropy. We again use the Ranker search method. The results are shown in table 10.
 
-```{r Results gain ratio attribute evaluation, echo=FALSE}
+```{r Results gain ratio attribute evaluation, echo=FALSE, fig.align = "center"}
 gain.results <- read.csv("datasets/dataset_results_weka/attributes/gain_ratio-normal.csv",
                          sep = ";", fileEncoding="UTF-8-BOM")
 kbl(gain.results, booktabs = T,
@@ -798,7 +811,7 @@ Again, we see an occurring trend: the same five attributes - num_medications, nu
 ### Final decision
 As already stated, we will remove the attributes number_emergency and number_outpatient. Considering if we needed to remove more attributes is a more difficult decision, almost all involved attributes do not score sufficient even to come close to the considered normal cut-off value of 0.05 or, in some cases, 0.01. Therefore, we want to explore another option that involves relevancy in the information an attribute gives us. For example, the attribute gender contains critical information regarding further research goals, and being able to separate cases on gender is vital in medical studies but has a low score in every attribute evaluation. Even though it has a low score, we want to retain it because of its content. Another example is metformin, which also scores low but is not of importance as diabetesMed. When applying this logic across the broad of attributes, we select candidates to remove. These are, in random order: metformin, diabetesMed, rosiglitazone, pioglitazone, glipizide, and glyburide. This leaves us with 16 attributes, including the class variable. We performed all our classifiers again on the new state of the dataset. We only consider accuracy. The results are depicted in table 11.
 
-```{r Final results, echo=FALSE}
+```{r Final results, echo=FALSE, fig.align = "center"}
 final.results <- read.csv("datasets/dataset_results_weka/attributes/final-attributes.csv",
                           sep = ";", fileEncoding="UTF-8-BOM")
 kbl(final.results, booktabs = T,
@@ -921,7 +934,7 @@ write.csv(instance.data,
 
 As we have seen, there is no magic trick that would increase accuracy without severely adjusting our data. Think about removing instances with higher valuation, reconstructing instances, or manually giving weight to high values to create a more normal-looking distribution. We already performed a cost-sensitive classifier to give more weight to values with fewer instances. Awarding even more weight could create a false image of what is really going on. Removing instances with higher values that are less covered is the last thing we want to do. Then we need to draw a line somewhere: what values can stay and which ones need to go? To illustrate the effects of removing high-value instances, we consider removing instances with a valuation ranging from 11 to 14; therefore, we would remove `r count.data %>% filter(time_in_hospital %in% c("11", "12", "13", "14")) %>% numcolwise(sum)(.)` instances, which translates to a loss of around 6%. After removal, we are left with 66.871 instances. 
 
-```{r Inserting results with less instances, echo=FALSE}
+```{r Inserting results with less instances, echo=FALSE, fig.align = "center"}
 diff.instances <- read.csv("datasets/dataset_results_weka/base/less_instances.csv",
                            sep = ";", fileEncoding="UTF-8-BOM")
 kbl(diff.instances, booktabs = T,
@@ -945,14 +958,17 @@ In the next code section, we mutate the time_in_hospital attribute, as described
 
 ```{r Creating new labels}
 final.data.label <- final.data %>%
-  mutate(time_in_hospital = case_when(time_in_hospital %in% c('1', '2', '3', '4', '5') ~ 'brief',
-                                      TRUE ~ 'long')) %>%
-  # Added 13 of October: Reshape data so that class variable is the last column
-  # We did this manually using the Explorer, but now we use the Experimenter,
-  # and the only way to appoint a class variable is having it be the last column.
+  mutate(time_in_hospital = 
+           case_when(time_in_hospital %in% 
+                       c('1', '2', '3', '4', '5') ~ 'brief',
+                       TRUE ~ 'long')) %>%
+# Reshape data so that class variable is the last column
+# We did this manually using the Explorer, but now we use the Experimenter,
+# and the only way to appoint a class variable is having it be the last column.
   relocate(time_in_hospital, .after = last_col())
 
-write.csv(final.data.label, "datasets/base_datasets/relabeled.csv", row.names = FALSE)
+write.csv(final.data.label, "datasets/base_datasets/relabeled.csv", 
+          row.names = FALSE)
 
 # Add legends and introduce a two-in-one plot
 p1 <- ggplot() +
@@ -966,7 +982,7 @@ p2 <- ggplot() +
   xlab("Classification")
 ```
 
-```{r Difference between class variables labeling, fig.cap="\\label{fig:figs}Difference between class variables labeling", echo=FALSE}
+```{r Difference between class variables labeling, fig.cap="\\label{fig:figs}Difference between class variables labeling", echo=FALSE, fig.align = "center"}
 library(ggpubr)
 figure <- ggarrange(p1, p2,
                     labels = c("A", "B"),
@@ -976,7 +992,7 @@ figure
 
 Now that we have a new dataset, we turn to Weka once more to analyze the new dataset. The results of this are shown in table 16.
 
-```{r Results relabeling, echo=FALSE}
+```{r Results relabeling, echo=FALSE, fig.align = "center"}
 label.result <- read.csv("datasets/dataset_results_weka/base/relabeled.csv",
                          sep = ";", fileEncoding="UTF-8-BOM")
 kbl(label.result, booktabs = T,
@@ -998,7 +1014,7 @@ We already discussed an attribute selection regarding the initial dataset, but s
 ### Correlation
 We look at the CorrelationAttributeEval, which calculates the correlation between each attribute and the class variable. When we run an evaluator, we look for values that outline a moderate-to-high or negative correlation, ranging from 1 to -1. We want to avoid attributes with a near-zero or zero correlation, as these attributes can potentially harm our model's performance. Therefore, we want to drop these attributes. The Ranker search method will be used here.
 
-```{r Correlation - attribute selection, echo=FALSE}
+```{r Correlation - attribute selection, echo=FALSE, fig.align = "center"}
 corr.results <- read.csv("datasets/dataset_results_weka/attributes/correlation-relabeled.csv",
                          sep = ";", fileEncoding="UTF-8-BOM")
 kbl(corr.results, booktabs = T,
@@ -1013,7 +1029,7 @@ We observe the results in the table 17, and we see comparable results as seen wh
 ### Information gain
 Next up is an interesting evaluator called InfoGainAttributeEval, which looks at the information gain or entropy for each attribute for the output/class variable. Calculated values can range between 0 (no information) and 1 (maximum information). Attributes with a high valuation contribute more to the model than lower values do, as they reduce entropy more. There is the potential of removing attributes with a low valuation that could increase accuracy. Like we did in the correlation evaluator, we use the Ranker search method once more. We depict our results and findings in the table 18.
 
-```{r Information gain - attribute selection, echo=FALSE}
+```{r Information gain - attribute selection, echo=FALSE, fig.align = "center"}
 infogain.results <- read.csv("datasets/dataset_results_weka/attributes/info_gain-relabeled.csv",
                              sep = ";", fileEncoding="UTF-8-BOM")
 kbl(infogain.results, booktabs = T,
@@ -1028,7 +1044,7 @@ As we have seen in the section about correlation, we see that the same attribute
 ### Gain ratio
 This evaluator looks a lot like the one we just discussed. It is an enhancement of the InfoGain evaluator, which means it operates with a normalized score. This method measures the significance of attributes concerning the class variable based on the gain ratio in more detail. A higher gain ratio means it reduces more entropy. We again use the Ranker search method. The results are shown in table 19.
 
-```{r Gain ratio - attribute selection, echo=FALSE}
+```{r Gain ratio - attribute selection, echo=FALSE, fig.align = "center"}
 gainr.results <- read.csv("datasets/dataset_results_weka/attributes/gain_ratio-relabeled.csv",
                           sep = ";", fileEncoding="UTF-8-BOM")
 kbl(gain.results, booktabs = T,
@@ -1043,7 +1059,7 @@ We observe what we already have seen on the initial dataset and again on this da
 ### Final decision
 As stated and discussed before, we will remove the attributes number_emergency and number_outpatient at least. When deciding on removing more attributes, it becomes a more difficult decision to make. Each evaluator gives variable scores with different sets of criteria, and a one-sided cut-off score is difficult to determine. For example, the insulin attribute scores 0.0521 on correlation, so this would guarantee it to be in the final dataset, as 0.05 is considered a fairly normal cut-off score. However, insulin scores 0.008625 and 0.00945 on information gain and gain ratio, respectively. These different scoring methods make deciding on attributes to be dropped difficult. What is important is that the ranking of attributes is relatable to each other - a low-scoring attribute on the info gain evaluator also scores low with the others. With that, the correlation evaluator can be used for a cut-off score. The scoring here is significantly higher than seen elsewhere - ranging from 0.35 to 0.00155 compared to, for example, 0.06-0.001120 for gain ratio. We are interested in what happens when we perform a cut-off score of 0.01 and 0.05 regarding the correlation evaluator's results. The results are depicted in figure 18.
 
-```{r Final decision - attribute selection, echo=FALSE}
+```{r Final decision - attribute selection, echo=FALSE, fig.align = "center"}
 final.relabeled.result <- read.csv("datasets/dataset_results_weka/attributes/final-relabeled-attributes.csv",
                                    sep = ";", fileEncoding="UTF-8-BOM")
 kbl(final.relabeled.result, booktabs = T,
@@ -1061,7 +1077,7 @@ In the next section, we want to explore another set of optimization as other cla
 ### Simple Logistics
 Once again, we turn to the classifier Simple Logistics for optimization purposes. When we did this once before, we already discussed all the important parameters and their default settings. We will refrain from researching every one of them once more, as we have seen that some do not greatly impact the performance. Weka also advises using some default settings, for example, with the heuristic stop (H) parameter. We already explored what the effects are if we play with this valuation and saw no reason to change the valuation. Therefore, we only want to explore the maxBoostingIterations (M) and numBoostingIterations (I) parameters again, as we saw promising results from testing on the initial dataset.
 
-```{r SL optimalization, echo=FALSE}
+```{r SL optimalization, echo=FALSE, fig.align = "center"}
 sl.results <- read.csv("datasets/dataset_results_weka/optimalization/sl-relabeled.csv",
                        sep = ";", fileEncoding="UTF-8-BOM")
 kbl(sl.results, booktabs = T,
@@ -1074,9 +1090,9 @@ Looking at the results in table 21, we see a comparison between the outcome gath
 
 \newpage
 ### Random Forest
-Random Forest is a classifier we have not optimized before. The classifier has many parameters to play with, but we are only interested in one of them: numIterations (I). The (I) parameter is the number of trees generated by the classifier, and the classifier will choose the smallest tree as the best. So the number of trees reflexes the chance of getting the most optimal tree; having a greater number of trees generated can, in theory, give bigger chances of getting a more optimal tree than with lower numbers. However, there is an equilibrium for generating numbers of trees and the chance of getting a more optimal tree. In a moment, there is not going to be a more optimal tree, and more iterations would only increase computing time. We want to explore these boundaries. \cite{RF-settings}
+Random Forest is a classifier we have not optimized before. The classifier has many parameters to play with, but we are only interested in one of them: numIterations (I). The (I) parameter is the number of trees generated by the classifier, and the classifier will choose the smallest tree as the best. So the number of trees reflexes the chance of getting the most optimal tree; having a greater number of trees generated can, in theory, give bigger chances of getting a more optimal tree than with lower numbers. However, there is an equilibrium for generating numbers of trees and the chance of getting a more optimal tree. In a moment, there is not going to be a more optimal tree, and more iterations would only increase computing time. We want to explore these boundaries.
 
-```{r RF optimalization, echo=FALSE}
+```{r RF optimalization, echo=FALSE, fig.align = "center"}
 rf.results <- read.csv("datasets/dataset_results_weka/optimalization/rf-relabeled.csv",
                        sep = ";", fileEncoding="UTF-8-BOM")
 kbl(rf.results, booktabs = T,
@@ -1089,14 +1105,14 @@ We now look at the table 22 and see that the old outcome has a lower accuracy th
 
 \newpage
 ## Exploring other meta learners
-There are some other ways to improve accuracy, for example, by combining multiple predictions from multiple classifiers. This way of improving accuracy can be done with meta learners that are called ensemble learners. 'Ensemble' meaning a group of items viewed as a whole rather than individually' \cite{Word}. We already explored Random Forest, an ensemble learner, and can be seen as an extension of Bagging. Besides, we will explore the ensemble learners Bagging, Boosting, Voting, and Stacking in this section.
+There are some other ways to improve accuracy, for example, by combining multiple predictions from multiple classifiers. This way of improving accuracy can be done with meta learners that are called ensemble learners. 'Ensemble' meaning a group of items viewed as a whole rather than individually. \cite{Word} We already explored Random Forest, an ensemble learner, and can be seen as an extension of Bagging. Besides, we will explore the ensemble learners Bagging, Boosting, Voting, and Stacking in this section.
 
 ### Bagging
 Bagging or Bootstrap Aggregation is used to reduce the variance. As stated before, Random Forest contains bagging elements to do just that. Reducing variance is important, as a high variance means that the model's results can change dramatically by random noise. Thereby making it sensitive to over-fitting. The trick is that each method creates separate samples from the training set and then creates multiple classifiers for each sample. Each classifier gives different results, which gives a good perspective on the performances. Bagging then picks the best-performing classifier.
 
 Since Bagging already occurs in the Random Forest classifier, we will not include it here. This would be counterproductive. The results depicted in table 23 are from Simple Logistics only.
 
-```{r Bagging, echo=FALSE}
+```{r Bagging, echo=FALSE, fig.align = "center"}
 bagging.results <- read.csv("datasets/dataset_results_weka/other_meta/bagging.csv",
                             sep = ";", fileEncoding="UTF-8-BOM")
 kbl(bagging.results, booktabs = T,
@@ -1113,7 +1129,7 @@ Boosting classifiers are mostly used to reduce bias in a model. There are multip
 
 Because Random Forest is already a meta learner, we will not include it in this section. \cite{Random-Forest}
 
-```{r Boosting, echo=FALSE}
+```{r Boosting, echo=FALSE, fig.align = "center"}
 boosting.results <- read.csv("datasets/dataset_results_weka/other_meta/bagging.csv",
                              sep = ";", fileEncoding="UTF-8-BOM")
 kbl(boosting.results, booktabs = T,
@@ -1128,7 +1144,7 @@ We observe the table 24, where the results of the AdaBoost are depicted. We see 
 ### Voting
 Voting is perhaps the most simple ensemble learners but is still fairly effective. It works by selecting two or more classifiers and selecting what criteria all classifiers will be combined. The default setting for the combination rule is taking the average of probabilities, but we will use Majority Voting. When all classifiers are combined, they can vote on what the outcome should be.
 
-```{r Voting, echo=FALSE}
+```{r Voting, echo=FALSE, fig.align = "center"}
 vote.results <- read.csv("datasets/dataset_results_weka/other_meta/voting.csv",
                          sep = ";", fileEncoding="UTF-8-BOM")
 kbl(vote.results, booktabs = T,
@@ -1143,7 +1159,7 @@ Looking at the table 25, we can see the best results retrieved from the performa
 ### Stacking
 Stacking looks like Voting as both works with multiple classifiers and their results. However, there is a huge difference. Stacking does not 'vote' on which classifier is the best-performing; it contains a meta-learner that learns how to combine the predictions from sub-models best. It can therefore increase our accuracy. We will test the stacking classifier on both Random Forest and Simple Logistics with Logistics as the meta-learner, as this classifier is widely used. Again, we test with the most optimal parameter settings.
 
-```{r Stacking, echo=FALSE}
+```{r Stacking, echo=FALSE, fig.align = "center"}
 stacking.results <- read.csv("datasets/dataset_results_weka/other_meta/stacking.csv",
                              sep = ";", fileEncoding="UTF-8-BOM")
 kbl(stacking.results, booktabs = T,
@@ -1201,7 +1217,8 @@ Now that we have a better picture of the distribution of predictions, we can dec
 The last thing we want to look at before deciding on a final model is the receiver operating characteristic (ROC) curve. This curve represents a fraction between the true positive rate and the false positive rate. The curve is essentially a representation of a confusion matrix. A ROC space is created by plotting the FPR and TPR as *x* and *y* axes to depict their relationship. A diagonal line divides this space; a point above this line represent good results from a classifier (high TPR, low FPR), whereas points below the line present a not so good result (low TPR, high FPR). In this section, we take a look at the ROC curve of Stacking and analyze its results.
 
 ```{r ROC curve Stacking}
-roc_data <- read.table("datasets/dataset_results_weka/roc_curve/stacking.arff", 
+roc_data <- read.table(
+  "datasets/dataset_results_weka/roc_curve/roc-curve_stacking.arff", 
                    sep = ",", 
                    comment.char = "@")
 names(roc_data) <- c("Instance_number", 
@@ -1223,24 +1240,22 @@ library(ggpubr)
 colors <- c(classifier = "red", threshold = "blue")
 plt <- ggplot(data = roc_data,
        mapping = aes(x = False_Positive_Rate, y = True_Positive_Rate)) +
-    geom_point(mapping = aes(color = "classifier result")) +
+    geom_point(mapping = aes(color = "classifier")) +
     geom_abline(aes(color = "threshold", 
                     slope = 1, 
                     intercept = 0)) + 
     scale_color_manual(values = colors) +
-    xlab("False Positive Rate") +
-    ylab("True Positive Rate") +
-    theme_minimal() +
+    xlab("True Positive Rate") +
+    ylab("False Positive Rate") +
     theme_pubr() +
     theme(legend.title = element_blank())
-
-ggsave(filename = 'figures/roc.pdf', plot = last_plot(), width = 10, height = 8, dpi = 300)
 ```
 
-```{r Printing ROC, fig.cap="\\label{fig:figs}ROC Curve based on the combining of Random Forest and Simple Logistics with the meta-learner Stacking", echo=FALSE}
+\newpage
+```{r Printing ROC, fig.cap="\\label{fig:figs}ROC Curve based on the combining of Random Forest and Simple Logistics with the meta-learner Stacking", echo=FALSE, fig.align = "center"}
 print(plt)
 ```
-
+\newpage
 Looking at figure 23, we see the ROC curve of stacking depicted. The red line is the classifier's performance, and the blue line divides the ROC space. We notice that our classifier performs well above the diagonal line, which means the classification is good. The optimum point seems to be around a TPR of 0.65 and an FPR of 0.25. This means that the positive cases that are predicted are actually positive ones, indicating high recall. A high recall/sensitivity is something we strive for. The Area under the ROC, which also one of our chosen metrics, is set at 0.803 and can be used as an accurate indicator. A high ROC Area means good accuracy. Our final model scores descent enough values to be a good model. 
 
 Our next goal is to create a JavaWrapper that can accept new instances and analyze these based on our model. The wrapper can be found in this [BitBucket repository](https://bitbucket.org/djscheper/javawrapper/src/master/).
@@ -1252,12 +1267,14 @@ Our next goal is to create a JavaWrapper that can accept new instances and analy
 Beata Strack, Jonathan P. DeShazo, Chris Gennings, Juan L. Olmo, Sebastian Ventura, Krzysztof J. Cios, and John N. Clore, \textit{Impact of HbA1c Measurement on Hospital Readmission Rates: Analysis of 70,000 Clinical Database Patient Records}, BioMed Research International, vol. 2014, Article ID 781670, 11 pages, 2014. DOI: \url{https://doi.org/10.1155/2014/781670}
 \bibitem{ICD}
 Centers for Disease Control and Prevention, National Center for Health Statistics, \textit{ICD-9}, \url{https://www.cdc.gov/nchs/icd/icd9.htm}, November 6, 2015.
-\bibitem{Weka-AttribSelectClass}
-Hall, M, \textit{Class AttributeSelectedClassifier}, \url{https://weka.sourceforge.io/doc.dev/weka/classifiers/meta/AttributeSelectedClassifier.html}.
 \bibitem{Pruning-J48}
 Stiglic, G., Kocbek S., Pernek I., Kokol P., \textit{Comprehensive Decision Tree Models in Bioinformatics}. DOI: \url{10.1371/journal.pone.0033812}
 \bibitem{SL-model}
 Eibe Frank, Administrator; \textit{Logistic VS Simple Logistic}, \url{https://weka.8497.n7.nabble.com/Logistic-VS-Simple-Logistic-td31410.html}
+\bibitem{Weka-AttribSelectClass}
+Hall, M, \textit{Class AttributeSelectedClassifier}, \url{https://weka.sourceforge.io/doc.dev/weka/classifiers/meta/AttributeSelectedClassifier.html}.
+\bibitem{Word}
+Thornton, C.; Hutter, F.; Hoos, H.H.; Leyton-Brown, K.: \textit{Auto-WEKA: Combined Selection and Hyperparameter Optimization of Classification Algorithms}, \url{https://arxiv.org/pdf/1208.3719.pdf}.
 \bibitem{Random-Forest}
 Boinee, P; De Angelis, A; and Foresti, G.L.: \textit{Meta Random Forests}, International Journal of Computational Intelligence Volume 2 Number 3, \url{https://www.researchgate.net/publication/242416336_Meta_Random_Forests}.
 \end{thebibliography}
