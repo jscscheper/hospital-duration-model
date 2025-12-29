@@ -1,7 +1,7 @@
 ---
 title: "Research log"
-author: "Dennis Scheper - 373689"
-date: "`r Sys.Date()`"
+author: "Jamie Scheper - 373689"
+date: "16 November, 2020"
 output:
   pdf_document:
     number_sections: yes
@@ -32,30 +32,29 @@ knitr::include_graphics('misc/hospital.jpg')
 # Original dataset
 
 ## Introduction
-The article, "Impact of HbA1c Measurement on Hospital Readmission Rates: Analysis of 70,000 Clinical Database Patient Records" states that hyperglycemia management has a significant impact on the outcome and readmission rates hospitalized patients. The authors based this conclusion on the comprehensive assessment of 70.000 diabetes patient records retrieved from 140 US hospitals. The results that depict the relationship between readmission rates and HbA1c levels can further enlargement already existing diabetes tactics to reduce readmission rates.\cite{OrgData}
+The article, "Impact of HbA1c Measurement on Hospital Readmission Rates: Analysis of 70,000 Clinical Database Patient Records", states that hyperglycemia management has a significant impact on outcomes and readmission rates for hospitalized patients. The authors base this conclusion on a comprehensive assessment of 70,000 diabetes patient records retrieved from 140 US hospitals. The results describing the relationship between readmission and HbA1c levels can further strengthen existing diabetes management strategies to reduce readmission rates.\cite{OrgData}
 
 ## Dataset and Attributes Information
-All information used in this article comes from a database consisting of 41 tables and totals 117 features, such as demographics (like gender, race, and age), inpatient or outpatient, and (in-hospital) mortality. Data came from 130 hospitals in the USA for over ten years (1998-2008) and contained around 74 million unique visits by 18 million unique patients. This research used information that needs to accede to the following specifications: 
+All information used in this article comes from a database consisting of 41 tables and a total of 117 features, including demographics (such as gender, race, and age), inpatient and outpatient indicators, and in-hospital mortality. The data were collected from 130 hospitals in the USA over more than ten years (1998 to 2008) and contained around 74 million unique visits by 18 million unique patients. This research used encounters that had to meet the following specifications:
 \begin{enumerate}
-  \item Is a hospital admission; 
-  \item The encounter is a diagnosed with 'diabetes', any kind will satisfy; 
-  \item The length of admission was at least one day up to eighteen days; 
-  \item Laboratory test results are available; and 
-  \item Medications were administered. 
-\end{enumerate}  
-Of these five criteria points, 101.000 encounters fulfilled all specifications. After some considerations with removing encounters based on incomplete (weight and medical specialty) or biased data (discharge to a hospice or death), 69.984 encounters remained in the final dataset. 
+\item The record is a hospital admission;
+\item The encounter includes a diagnosis of diabetes (any type);
+\item The length of stay is at least one day and at most eighteen days;
+\item Laboratory results are available; and
+\item Medications were administered.
+\end{enumerate}
+Of these criteria, 101,000 encounters satisfied all specifications. After removing encounters with incomplete data (weight and medical specialty) or potentially biasing cases (discharge to hospice or death), 69,984 encounters remained in the final dataset.
 
-The initial dataset consists of 55 attributes, with the class attribute being an encounter of one patient. As there are way too many attributes to describe, please refer to the codebook for all descriptions; we only look at some essential attributes and their type and possible valuations. The age of a patient is nominal and is grouped into ten-year intervals. The admission type or the specific reason a patient was hospitalized came in 9 distinct values is nominal. Some attributes are numeric and count, such as the number of lab procedures, the number of medications, and the number of emergency visits. The database consists of three diagnosis attributes, which can have 848, 923, and 954 distinct values, respectively. The values are based on ICD9 three-letter codes and are of the nominal type. Other vital attributes are whether a patient changed medications (with the values 'no change' and 'change'; nominal type) or had diabetes medication ('yes' or 'no' values and nominal typing). Twenty-four other attributes depict whether medicine is prescribed or not, if prescribed, then if the dosage was increased ('up'), decreased ('down'), or stayed the same ('steady') during the encounter. Readmission rates were calculated by looking at a nominal type ('Readmitted') with the possible valuations of '<30' for a patient that was readmitted within 30 days, '>30' for a patient that was readmitted after 30 days, and 'No' for patients that were not readmitted. The authors' goal was to determine whether a relationship between readmission rates and HbA1c measurement exists; therefore, they introduced a new attribute 'HbA1c' with four different valuations, based on the information from the database: 1) no HbA1c test performed; 2) HbA1c performed and in the normal range; 3) HbA1c performed and the result is greater than 8% with no change in diabetic medication; and 4) Hb1Ac performed, the result is more significant than 8%, and diabetic medication was changed.
+The initial dataset consists of 55 attributes, with each instance representing a single patient encounter. Because there are too many attributes to describe in full, please refer to the codebook for detailed descriptions. Here, we highlight essential attributes, including their types and possible values. Patient age is nominal and grouped into ten-year intervals. Admission type, which describes the reason for hospitalization, has nine distinct values and is nominal. Some attributes are numeric count variables, such as the number of lab procedures, the number of medications, and the number of emergency visits. The database includes three diagnosis attributes, which can take 848, 923, and 954 distinct values, respectively. These values are based on ICD-9 codes and are nominal. Other important attributes include whether a patient changed medications (values: “no change” and “change”, nominal) and whether a patient received diabetes medication (values: “yes” or “no”, nominal). Twenty-four additional attributes indicate whether a medication was prescribed and, if so, whether the dosage was increased (“up”), decreased (“down”), or unchanged (“steady”) during the encounter. Readmission status is recorded in the nominal variable \texttt{Readmitted}, with possible values “<30” for readmission within 30 days, “>30” for readmission after 30 days, and “No” for no readmission. Because the authors aimed to determine whether a relationship exists between readmission and HbA1c measurement, they derived a new attribute \texttt{HbA1c} with four categories based on available fields: (1) no HbA1c test performed; (2) HbA1c performed and within the normal range; (3) HbA1c performed and greater than 8% with no change in diabetes medication; and (4) HbA1c performed, greater than 8%, and diabetes medication was changed.
 
 ## Research Goal
-Is it possible, using machine learning techniques to predict the duration of an inpatient hospital visit?
+Is it possible, using machine learning techniques, to predict the duration of an inpatient hospital visit?
 
 \newpage
 # EDA (Exploratory Data Analysis)
+This section performs an exploratory data analysis (EDA) on the dataset described above. Through EDA, we examine distributions and relationships between variables and identify missing values. If missing values are present, we address them by imputing or removing records where appropriate. Additionally, we evaluate variation within and between attributes to determine which variables are most relevant to the research goal.
 
-This section will perform an exploratory data analysis (EDA) on the dataset described above. We can explore our dataset with an EDA and determine if any correlations exist between attributes and undermine any missing values. If any exist, we deal with them accordingly, looking to repair these values or remove them entirely. Additionally, we will look at variations between and in attributes for determining which ones are of most importance and interest to our research goals. 
-
-First, we load in our used packages, mostly used to visualize data and the data itself. Besides that, we also load in a codebook, which contains, i.e., a description for every attribute for the initial dataset. The codebook was not retrieved from any outside source but was constructed on the interpretation of the data.
+First, we load the required packages, primarily for data handling and visualization, as well as the dataset itself. We also load a codebook that contains descriptions of every attribute in the initial dataset. The codebook was not retrieved from an external source but was constructed based on interpretation of the dataset.
 
 ```{r Load used packages and read in some important files}
 # Load used packages
@@ -95,7 +94,7 @@ kable(codebook, "latex",
   column_spec(4, width = "5cm") 
 ```
 
-To get a better picture of our dataset's distribution, we called upon the function glimpse(). We notice that the data contains `r ncol(encounter.data)` columns/ attributes. Additionally, a summary() function gives an outline of every attribute, showing each level with a count of its valuation.
+To get a clearer picture of the dataset’s structure and distribution, we used `glimpse()`. The output shows that the data contains `r ncol(encounter.data)` columns (attributes). In addition, `summary()` provides an overview of each variable, including counts for each level/value where applicable.
 
 ```{r Summarize data}
 # Give a glimpse of how the data is distributed
@@ -107,7 +106,7 @@ summary(encounter.data)
 
 \newpage
 ## Missing values
-As we see in the result determined by the glimpse() function, the columns race, weight, payer_code, gender, diag_3, and medical specialty have some or significant amounts of missing values. To get a better picture, we will zoom in on these attributes and determine the amount and the percentage of missing values.
+As shown by the output of `glimpse()`, the columns `race`, `weight`, `payer_code`, `gender`, `diag_3`, and `medical_specialty` contain some (or in some cases substantial) missing values. To get a clearer picture, we zoom in on these attributes and quantify both the number and percentage of missing values.
 
 ```{r Determine missing values, fig.align = "center"}
 myvars <- c('race', 'weight', 'payer_code', 
@@ -140,15 +139,19 @@ encounter.data.missing <- replace(encounter.data, encounter.data == "?", NA)
 vis_miss(encounter.data.missing, warn_large_data = F)
 ```
 
-As we notice in table 2 and figure 1, attribute weight is almost entirely made-up of missing values. For that reason, it is a candidate for removal. The same can be said for payer_code and medical_specialty, where `r tableMissingValues['payer_code', 2]`% and `r tableMissingValues['medical_specialty', 2]`% of values are missing, respectively. Payer_code has no significant value to our research goals and questions; therefore, it can be removed. Medical_specialty can be of value as it contains a range of useful information. Missing values can be set to 'Missing' or reevaluated based on other valuations; doing this is not without risk, as it is almost half of the attributes' values. Deleting all missing values is not doable as it removes half of all records! Setting it to 'Missing' seems to be the most logical option. Attributes race and diag_3 seem to have little amounts of missing data, but removing them can alter our outcomes; therefore, we will use the same approach as medical_specialty. Gender only has three missing values. Considering the amount does not account for even one percent, removal does not seem to harm, and gender is, in most cases, considered binary data.
+As shown in Table 2 and Figure 1, the `weight` attribute is almost entirely missing. For that reason, it is a strong candidate for removal. The same applies to `payer_code` and `medical_specialty`, where `r tableMissingValues['payer_code', 2]`% and `r tableMissingValues['medical_specialty', 2]`% of values are missing, respectively. Because `payer_code` does not add meaningful information for our research question, we remove it.
+
+In contrast, `medical_specialty` may be informative because it captures the clinical context of the encounter. However, imputing or inferring missing values is risky given that nearly half of the entries are missing. Dropping all records with missing `medical_specialty` is also not feasible because it would remove roughly half of the dataset. Therefore, we encode missing values as `"Missing"`.
+
+The attributes `race` and `diag_3` contain relatively small amounts of missing data. Still, removing these variables (or removing rows with missing values) could bias downstream analyses, so we apply the same strategy and encode missing values as `"Missing"`. The `gender` attribute contains only three missing values. Given how small this fraction is, we remove those records; additionally, `gender` is treated as a binary variable in most cases.
 
 \newpage
-In the next section, we will introduce a new attribute (HbA1c measurement) based on an A1C test and the response to that result, defined as a change in diabetic medication. This test was performed at the time of hospital admission. We consider four groups of encounters:
+In the next section, we introduce a new attribute (`HbA1c` measurement) based on whether an A1C test was performed and whether its result was followed by a change in diabetes medication. The test was performed at the time of hospital admission. We define four encounter groups:
 \begin{enumerate}
-  \item no HbA1c test performed;
-  \item HbA1c performed and in normal range;
-  \item HbA1c performed and the result is greater than 8% with no change in diabetic medication; and
-  \item HbA1c performed, result is greater than 8%, and diabetic mediation was changed.
+  \item No HbA1c test performed;
+  \item HbA1c performed and within the normal range;
+  \item HbA1c performed and the result was greater than 8% with no change in diabetes medication; and
+  \item HbA1c performed, the result was greater than 8%, and diabetes medication was changed.
 \end{enumerate}
 
 ```{r Introducing a new attribute}
@@ -164,7 +167,7 @@ encounter.data <- encounter.data %>%
 encounter.data$hba1c_res <- as.factor(encounter.data$hba1c_res)
 ```
 
-We have many near-zero variance variables comprised in our dataset. For example, the attribute examide consists of entirely one level with no missing values. For that reason, it is a zero-variance attribute. This attribute is not informative and will not help in predicting an outcome. All other (near) zero-variance attributes were removed as they would increase computing times if kept. We are talking about the following eighteen attributes:
+Our dataset contains multiple (near) zero-variance variables. For example, the attribute `examide` consists of a single level across all observations and has no missing values. Therefore, it is a zero-variance variable. Because zero-variance variables carry no information and cannot contribute to predicting the outcome, we remove them. We also remove all other (near) zero-variance variables, as keeping them would only increase computation time without improving model performance. In total, we removed the following eighteen attributes:
 
 ```{r Remove near-zero variables}
 library(caret)
@@ -173,7 +176,7 @@ encounter.data <- encounter.data %>%
   select(-c(removal.names))
 ```
 
-Before we start analyzing our dataset, it is crucial to check on duplicates as our dataset contains multiple inpatient visits for some patients. These observations cannot be statistically independent and would create noise. We thus declare that only one encounter per patient is optimal.
+Before we start analyzing our dataset, it is crucial to check for duplicates because the dataset contains multiple inpatient visits for some patients. These repeated observations are not statistically independent and can introduce noise. Therefore, we keep only one encounter per patient for downstream analyses.
 
 ```{r Finding duplicates, fig.align = "center"}
 duplicateCheck <- encounter.data %>%
@@ -194,11 +197,12 @@ kbl(table.dup, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-Looking at table 3, we can see that the initial dataset started with 101.766 records, of which 16.773 were duplicates. Potential removal of these records would leave us with `r nrow(encounter.data) - nrow(duplicateCheck)` records, a total loss of 16.48%—a small price to pay for a statistically independent dataset.
+Looking at Table 3, the initial dataset contains 101,766 records, of which 16,773 are duplicates. Removing these records would leave `r nrow(encounter.data) - nrow(duplicateCheck)` observations, corresponding to a loss of 16.48%. This is a reasonable trade-off to obtain a dataset in which observations are (approximately) statistically independent.
 
 \newpage
-## Categorial attributes
-In this section, we take a look at variations in and between attributes. The attribute gender consists of three values ('female,' 'male,' and 'missing/unknown'). Since observe and use this attribute, it is essential to remove the abundant value.
+
+## Categorical attributes
+In this section, we examine variation within and between categorical attributes. The `gender` attribute has three levels (`"Female"`, `"Male"`, and `"Missing/Unknown"`). Because we include this variable in our analyses, we remove the `"Missing/Unknown"` category (i.e., exclude those records).
 
 ```{r Show -basic- variations}
 # First, we need to remove all records containing the third option 
@@ -243,9 +247,9 @@ grid.arrange(p2)
 grid.arrange(p3)
 ```
 
-Looking at figure 2, we notice that most patients are from the Caucasian race with almost equivalent male and female ratios. We expect a rise in the number of diabetes patients when looking at older population groups. Figure 3 shows this exact prediction; the data is negatively skewed and increases in numbers per older age group. We observe the same results in figure 4, where an increase in the A1C test is shown when comparing older population groups. Additionally, the figure gives an essential insight for many patients - in most cases, the test was not conducted and shows that strategies surrounding testing diabetes are not normalized in hospital protocols. 
+As shown in Figure 2, most patients are recorded as Caucasian, with an approximately balanced distribution between male and female patients. We expect the number of diabetes-related admissions to increase in older age groups. Figure 3 supports this expectation: the distribution is negatively skewed, with more encounters observed in the older age categories. A similar pattern is visible in Figure 4, where HbA1c testing becomes more common in older age groups. Importantly, Figure 4 also shows that for many encounters—most of them—the test was not performed, suggesting that HbA1c testing was not routinely integrated into hospital protocols during the study period.
 
-This graph does not, however, make a distinction between non-ICU and ICU patients. The authors of the original dataset analyses stated that ICU departments' protocols have a stricter policy surrounding testing for diabetes. When comparing non-ICU and ICU patient records, we need to construct a new attribute called 'icu_or_non,' comprising data from attributes admission_type_id, admission_source_id, and discharge_disposition_id. We distinguish between non-ICU and ICU patients.
+However, Figure 4 does not distinguish between ICU and non-ICU encounters. The authors of the original analysis noted that ICU departments follow stricter protocols for diabetes-related testing. To compare ICU and non-ICU records, we construct a new attribute, `icu_or_non`, based on `admission_type_id`, `admission_source_id`, and `discharge_disposition_id`, and use it to classify encounters as ICU or non-ICU.
 
 ```{r ICU versus non-ICU}
 encounter.data <- encounter.data %>%
@@ -305,9 +309,9 @@ grid.arrange(p2)
 grid.arrange(p3)
 ```
 
-We observe the distinction between ICU and non-ICU in figures 5, 6, and 7. We notice a smaller population of non-ICU patients in all mentioned figures, whereas the ratio of not only gender but also seen in 6, where race is depicted, ratios stay consequently the same. Figure 7 shows that no matter the patient type (ICU or non-ICU), protocols surrounding diabetes testing is not firmly conducted. Keeping the distinction between non-ICU and ICU might not be necessary. However, it can be of complimentary use when starting with machine learning; the data is binary, and it allows the removal of three attributes.
+Figures 5, 6, and 7 compare ICU and non-ICU encounters. Across these figures, the ICU subgroup is smaller than the non-ICU subgroup. Despite this difference in sample size, the relative distributions remain similar: the gender ratio is comparable between groups, and Figure 6 shows a similar pattern for race. Figure 7 indicates that, regardless of encounter type (ICU or non-ICU), HbA1c testing is not consistently performed. This suggests that keeping the ICU vs. non-ICU distinction may not be essential for the descriptive analysis. However, it may still be useful for downstream machine learning because it is a simple binary feature and allows us to collapse three attributes into one.
 
-The attributes diag_1, diag_2, and diag_3 consist of many three-digit ICD codes. Many of these codes belong together in a subgroup. In the following section, we will construct a better way of describing the exact diagnosis. ICD codes descriptions are retrieved from \cite{ICD}.
+The attributes `diag_1`, `diag_2`, and `diag_3` contain many ICD-9 diagnosis codes. Many of these codes can be grouped into clinically meaningful categories. In the following section, we construct a more interpretable representation of diagnoses by mapping ICD codes to broader groups. ICD code descriptions were retrieved from \cite{ICD}.
 
 ```{r Diagnosis}
 encounter.data <- encounter.data %>%
@@ -373,9 +377,11 @@ grid.arrange(p2)
 grid.arrange(p3)
 ```
 
-Looking at figure 8, 9, and 10, we can see the results of the revaluation of attributes diag_1, diag_2, and diag_3. These attributes depict the primary, secondary, and final diagnosis of a patient, respectively. Interestingly, the difference between the figures is the increase in the number of diabetes diagnoses. Due to not testing diabetes on the initial hospitalization, readmission rates increase as a patient's primary diagnosis is not sustainable. The data classification now shows a clearer picture and would undoubtedly be of fair use in the final dataset. The original authors did not keep diag_2 and diag_3, making records too complex to achieve their goals. Removal of these two attributes is still up for discussion, but the analysis does not give - for now - a clear indication for potential removal.
+Figures 8, 9, and 10 show the results of recoding `diag_1`, `diag_2`, and `diag_3`. These attributes represent the primary, secondary, and tertiary diagnosis for an encounter, respectively. A notable difference across the three figures is the increasing proportion of diabetes-related diagnoses. One possible explanation is that when diabetes is not identified or prioritized during the initial admission, glycemic management may be suboptimal, which could contribute to higher readmission risk. Overall, the recoded diagnosis groups provide a clearer and more interpretable summary of diagnostic patterns and are likely to be useful in the final dataset.
 
-In the next section, we look at attribute medical_specialty and decide whether it is useful enough - considering the number of missing values - to be a candidate for the final dataset. We construct multiple plots that zoom in on the categories and valuations of this attribute.
+The original authors did not retain `diag_2` and `diag_3`, likely to reduce feature complexity. Whether to remove these two attributes remains an open question. At this stage, the EDA does not provide a clear indication that they should be dropped.
+
+In the next section, we examine `medical_specialty` and evaluate whether it is informative enough—given its high fraction of missing values—to include in the final dataset. We create several plots that focus on the categories and frequencies of this attribute.
 
 ```{r Medical specialty}
 library(pals)
@@ -420,9 +426,9 @@ grid.arrange(p1)
 grid.arrange(p2)
 ```
 
-Looking at both figures 11 and 12, we observe a large valuation between all demographic attributes used. Depicted in purple are the missing values, as already established, make-up almost 50 percent of total records. Medical specialty is different from, for example, admission_id, where we could shrink the attribute to a better format. This is an alternative to this attribute. We are considering this because medical specialty does not give better information than any diagnosis attribute, which also gives, maybe even more useful, guidance about an encounter's medical history. At this stage, removal of this attribute could not be of lethal harm. 
+Looking at Figures 11 and 12, we observe substantial variation across the demographic attributes. The missing values, shown in purple, account for nearly 50% of all records, as established earlier. Unlike attributes such as `admission_id` (which can be collapsed into a smaller set of categories), `medical_specialty` is difficult to meaningfully simplify without losing a lot of detail. This raises the question of whether the variable adds information beyond what is already captured by the diagnosis codes. Because the diagnosis attributes likely provide equal or even more clinically relevant context for an encounter, removing `medical_specialty` at this stage would probably not be harmful.
 
-For our final categorical attribute, and one of the most influential -according to the original authors- we will discuss readmitted. Readmitted is an attribute with three different valuations: '<30' for readmission within 30 days after release, '>30' for readmission after 30 days release, and 'NO' for no readmission. 
+As our final categorical attribute—and one of the most influential variables according to the original authors—we discuss `readmitted`. This variable has three levels: `"<30"` for readmission within 30 days after discharge, `">30"` for readmission more than 30 days after discharge, and `"NO"` for no readmission.
 
 ```{r Readmission}
 agg <- count(encounter.data, readmitted, race, gender, age, diag_1, diag_2)
@@ -471,15 +477,16 @@ grid.arrange(p3)
 grid.arrange(p4)
 ```
 
-We observe the results of analyzing the readmitted attribute. We looked at readmitted with different demographics (gender, age, and race) and two of the three diagnosis attributes. Figure 13 shows that the Caucasian race has the most readmission rates in both genders. Observations made in figure 14 depict that as age increases, readmission rates also increase for females and males. This makes sense as immunity decreases with age, and the chance of recovery diminishes. Readmission rates decrease after the age of 80. The reasoning behind this might be death or transferring to a hospice or other facility. 
+We next analyze the `readmitted` attribute by stratifying it across demographics (gender, age, and race) and two of the three diagnosis attributes. Figure 13 shows that Caucasian patients account for the largest share of readmissions in both gender groups, which likely reflects the underlying class imbalance in the dataset. Figure 14 shows that readmissions generally increase with age for both female and male patients, which is consistent with increased frailty and comorbidity at older ages. Readmission rates appear to decrease after age 80. One possible explanation is increased mortality or discharge to hospice or long-term care facilities in the oldest age groups.
 
-Comparing the results in figures 15 and 16, we see a familiar trend: the increase of diabetes diagnoses between the primary and secondary diagnoses. This typically means that patients admitted were diagnosed differently, and over time, are getting a new diabetes diagnosis much quicker. 
+Comparing Figures 15 and 16, we observe a familiar pattern: the proportion of diabetes-related diagnoses increases from the primary to the secondary diagnosis. This may indicate that many patients are admitted for another primary condition, while diabetes is more often recorded as a comorbidity (and therefore appears more frequently in secondary diagnoses).
 
-Since we have multiple diagnosis categories but are somewhat interested in diabetes only, we can alter these attributes to have only two valuations ('diabetes' and 'other'). However, doing this can affect later analysis as we remove potentially valuable information. 
+Because we are primarily interested in diabetes-related effects, one option would be to collapse diagnosis categories into a binary variable (e.g., `"diabetes"` vs. `"other"`). However, this simplification may remove clinically relevant information and could affect downstream analyses.
 
 \newpage
-## Distribution - numeric attributes
-We discussed many categorical data attributes, now turn to our few numeric data. It is important to have a good distribution between numeric data. If the range of distribution is too large, then normalization is necessary. We construct multiple histograms, which we get through the histogram.plotter() function.
+
+## Distribution – numeric attributes
+After examining categorical variables, we now turn to the numeric attributes. Inspecting their distributions is important, especially to identify variables with extreme ranges or heavy skew, which may require normalization or transformation. We therefore generate a set of histograms using the `histogram.plotter()` function.
 
 ```{r Distribution}
 # Define a histogram plotter to construct multiple figures really quick
@@ -518,11 +525,12 @@ knitr::include_graphics('figures/distribution_his_1.pdf')
 knitr::include_graphics('figures/distribution_his_2.pdf')
 ```
 
-The results, depicted in figures 17 and 18, show that not all of the attributes are evenly distributed. Normalization might be necessary to correct the distributions of namely B, which makes a couple of weird spikes, E, F, and G, which are all -but B- number of visits of an encounter. We might want to introduce a new attribute, total_visits, which accounts for all visits made by one encounter. The method of normalization is still up for debate.
+The results shown in Figures 17 and 18 indicate that several numeric attributes are not evenly distributed. Some form of normalization or transformation may be required, particularly for variables such as **B** (which shows several unusual spikes) and **E**, **F**, and **G**, which represent visit counts per encounter. As an alternative (or complement), we may introduce a new attribute, `total_visits`, defined as the total number of visits associated with an encounter (e.g., by summing the relevant visit-count variables). The most appropriate normalization approach is still under discussion and will depend on the modeling strategy.
 
 \newpage
-## Correlation - numeric attributes
-To discover any correlation between the numeric data in our dataset, we constructed a heatmap, which is depicted below. We discuss a possible correlation between age and time spent in the hospital and the potential relationship between the num_lab_procedures and num_medications.
+
+## Correlation – numeric attributes
+To explore correlations among the numeric variables, we constructed the heatmap shown below. In particular, we assess whether age is associated with length of hospital stay, and we examine the relationship between `num_lab_procedures` and `num_medications`.
 
 ```{r Heatmaps}
 library(reshape2)
@@ -555,11 +563,11 @@ encounter.data %>%
 ```
 
 \newpage
-Our heatmap (shown in figure 19) shows a strong correlation as red, a small correlation as orange, and no correlation as yellow. The attributes that stand out are, for example, num_medications-time_in_hospital, num_procedures-num_medications, and hba1c_res-num_medications. As we can see, it is mostly the num_medication attribute that has some correlation. Others do not stand out that much. We can conclude that most of the attributes are non-correlated, at least for the numeric attributes. 
+Our heatmap (Figure 19) visualizes strong correlations in red, weak correlations in orange, and little to no correlation in yellow. Several relationships stand out, including `num_medications` vs. `time_in_hospital`, `num_procedures` vs. `num_medications`, and `hba1c_res` vs. `num_medications`. Overall, `num_medications` is the variable that shows the most consistent associations with other numeric features, while most other pairs do not exhibit notable correlations. Based on this heatmap, the majority of numeric attributes appear to be weakly correlated or uncorrelated.
 
-Looking at figure 20, we observe that the age groups above [40-50) increases in total counts; consequently, the total time spent in the hospital before release also increases. We can, therefore, conclude that the time_in_hospital attribute is dependent on a patient's age. Finally, we zoom in on two attributes with a (small) correlation depicted in figure 19. Figure 21 shows the result of zooming in on num_medications and num_lab_procedures; the result shows that most encounters have a valuation between 15-20 medications and 40-60 amount of lab procedures. The result also shows a lot of outliers, which normalization could solve.
+In Figure 20, we observe that age groups above `[40-50)` have higher total counts and, correspondingly, a higher total time spent in the hospital before discharge. This suggests that `time_in_hospital` increases with patient age. Next, we zoom in on a pair of variables with a small correlation in Figure 19. Figure 21 shows `num_medications` against `num_lab_procedures`: most encounters fall around 15–20 medications and 40–60 lab procedures. The scatter also contains many outliers, which may be addressed through transformation or normalization.
 
-Next up, we look if our valuations of the class variable are clustered separately or if we have overlap between instances. This is important because it tells us something about how well we can predict based with the class variable. We investigate the variance between all numeric data compared to the class variable in figure 21. Here we see that the variation steadily declines per PCA run. If we look at the actual PCA, depicted in figure 22, we can see that there is a lot of overlap between attributes regarding the class variable. It means that we can expect some difficulty predicting with machine learning algorithms.
+Next, we assess whether the class variable forms separable clusters or shows substantial overlap between instances. This matters because it provides an early indication of how predictable the target may be. We first examine how much variance is explained by principal components derived from the numeric variables (Figure 21). As expected, the explained variance decreases with each additional principal component. In the PCA plot (Figure 22), there is substantial overlap between classes, suggesting that separating the outcome using only these numeric features may be challenging and that more complex models and/or additional informative features may be required.
 
 ```{r PCA}
 cc.pca <- prcomp(numeric.data,
@@ -584,7 +592,9 @@ ggbiplot(cc.pca, obs.scale = 1, var.scale = 1,
 ```
 
 \newpage
-Since we adjusted the labels of the class variable, we need to perform a PCA once more. Figure 22 depicted a class variable with 14 different valuations; now we only have two. The results are depicted in figure 23. While we look at figure 23, we can see that the valuations still overlap quite a bit. But there is a clearer difference between them; we can see that a blue and red group are still a little separated from each other but they still overlap in the middle. This is most likely because of splitting the class variable into a group with lower and higher valuations.
+Because we adjusted the labels of the class variable, we need to rerun the PCA. Figure 22 showed the class variable with 14 levels; we have now reduced this to two. The updated results are shown in Figure 23. 
+
+In Figure 23, the two classes still overlap substantially, but the separation is slightly clearer than before. The blue and red groups show some tendency to separate, although they still overlap in the center. This is likely a consequence of collapsing the original multi-level outcome into a binary split (lower vs. higher values), which can increase contrast while still preserving shared structure across encounters.
 
 \newpage
 ```{r Ggbiplot two valuations, fig.cap="\\label{fig:figs}A PCA with all numeric attributes, plotted against the class variable time_spent_hospital, with two different valuations"}
@@ -603,7 +613,7 @@ ggbiplot(cc.pca, obs.scale = 1, var.scale = 1,
 
 \newpage
 # A Clean Dataset
-In this section, we will remove all unnecessary attributes and instances, as discussed in the EDA. Many filters and mutations have already been performed throughout the EDA, but not all have made it and seems to be scattered around - to give a more clear picture of the final, clean dataset, we perform all filtering, mutations, and relabeling that made it to the final dataset, again.
+In this section, we apply all final preprocessing steps to construct a clean analysis dataset. While many filters, mutations, and relabeling steps were performed throughout the EDA, they are currently scattered across the notebook. To provide a clear and reproducible overview of the final dataset, we rerun all filtering, transformation, and relabeling steps that are retained for the final analysis in one place.
 
 ```{r Restructering and removal of abdundant data}
 # Load in the data again to perform only filtering that is needed, 
@@ -672,29 +682,60 @@ write.csv(final.data, "datasets/base_datasets/normal_dataset.csv",
 ```
 
 \newpage
-# Determine quality metrics relevancy
-For the next part of our research, we will work on predicting the time spent in the hospital. Weka, a Java-based data analysis and algorithm interface, is used in this research. Its powerful interface makes it easy to work with comprehensive data modeling techniques.
+## Determine quality metrics relevancy
 
-Weka comes with quite a few ways to evaluate results gathered from a classifier. When predicting a class variable, Weka reports the number of true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN). In our case, this would be a correctly predicted duration of a hospital stay, a not correctly predicting the duration, a prediction that is classified as a correct duration is actually incorrect. An incorrect prediction is actually a correct one, respectively. These are essential values for evaluating predicted results after running a classifier. 
+For the next part of our research, we focus on predicting the time spent in the hospital. In this project, we use Weka, a Java-based data analysis and algorithm workbench. Its interface makes it practical to train classifiers and evaluate performance on a dataset.
 
-Knowing these four crucial numbers, we can calculate quality metrics to determine how well a classifier works on the supplied dataset. The number of quality metrics to choose from is substantial, but we only need a couple to establish whether a classifier is worth-while. We look at the accuracy, precision, and recall of the results, the rates of true and false positives, F1-score measurement, determine a ROC area and construct a confusion matrix.
+Weka offers multiple ways to evaluate the output of a classifier. When predicting a class variable, Weka reports the number of true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN). In our context, these counts describe whether the predicted duration category matches the true category or not. For binary classification, these terms are straightforward; for multiclass classification, they are typically computed per class (one-vs-rest) and then summarized. 
 
-A confusion (or error) matrix represents the performance of an algorithm. It is a table with rows for the predicted instances, and the columns represent the instances of the actual class. The matrix reports on the number of FP, FN, TP, and TN. This representation allows for a more detailed analysis than a metric that specifies a certain value like accuracy. However, it can complicate when too many class variables need to be depicted. For example, our class attribute has 14 valuations and creates a confusion matrix of 196 (14x14) elements. It contains much information; therefore, we introduce other quantity metrics that work more specific and are less complex.
+Using TP, TN, FP, and FN, we can compute quality metrics to determine how well a classifier performs on our dataset. There are many possible quality metrics, but we focus on the most relevant ones for deciding whether a classifier is worth using: accuracy, precision, recall, true-positive and false-positive rates, the F1-score, and the ROC area (AUC). We also inspect the confusion matrix for a detailed view of model behavior.
 
-The number of instances correctly identified as either true positive or true negative is called the accuracy. This metric gives a peak in how "true" our classification is, or in other words, how many predictions are right. In our case, predicting the right amount of days that a patient spends in the hospital. It is essential to know how accurate our classification is as we want the result (prediction) to be as close to the 'true' value.  
+A confusion matrix (also called an error matrix) summarizes classifier performance by comparing predicted versus actual class labels. The rows represent predicted classes and the columns represent the actual classes. Each cell contains the number of instances that fall into that predicted–actual combination. Although a confusion matrix is informative, it becomes difficult to interpret when the number of class levels is large. For example, a class variable with 14 levels yields a 14×14 confusion matrix (196 cells). Because such a matrix contains a lot of information, we additionally use summary metrics that are easier to compare across models.
 
-Precision and recall are also two important metrics. Precision is the balance between TPs and all other classified positive results (TP + FP). This metric's importance comes from the fact that we can check on the balance between truly correct predicted instances and falsely correct predicted instances. I.e., what proportion of the positive identifications was actually correct? It highlights how well our classifier performs on the data we fed to it. We want to determine the duration of hospital stays so that professionals can look at the differences between outcomes and potentially make an effective plan to reduce the duration of visits and thereby costs. Therefore, it is important to have a model with as little false, correct predictions, as this can affect the liability of future procedures to reduce the duration of visits. It can have less effect than was calculated, potentially increasing costs than was planned. Therefore, our goal is only to bring advice to hospitals and institutions if we can confidently predict the duration of inpatient visits.
+### Accuracy
+**Accuracy** is the proportion of correctly classified instances:
 
-The recall is a metric that represents the sensitivity of an outcome. It looks at what proportion of actual positives was identified correctly (TP / TP + FN). Remember that False Negatives are actual correct predictions thought to be incorrect. So it reflexes on the number of missing correct predicted instances. This can also have an impact on the effectiveness of a procedure based on our model. It is the opposite of the message from precision. If False Negatives are with many - and the False Positives rate is low - then a procedure instituted on our model could have done more to reduce the duration of visits, but our model could not learn more about the true data and became more biased towards false predictions. It determines if a said procedure based on our model can reach full potential regarding its goals: reducing duration as much as possible to make health care more affordable.
+\[
+\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}.
+\]
 
-An F1-score is the mean of the precision and recall; it measures the recall and precision metrics' effectiveness by calculating the mean. It can range from 0 to 1 (perfect precision and recall). In other words, the F1-score conveys the balance between precision and recall.
+Accuracy provides a quick overall impression of performance (that is, how often predictions are correct). However, accuracy can be misleading when class distributions are imbalanced.
 
-The last metric we introduce is the ROC area, which can be depicted in a ROC curve. The ROC curve is created by plotting the true-positive rate as a function of the false-positive rate. ROC analysis arranges a way to select optimal models and to discharge suboptimal ones. It helps with visualizing a complex confusion matrix. As we have 14 valuations in our class variable, it becomes a really complex job to interpret every bit of information depicted. A ROC area makes this part easier. The ROC area (AUC) is a value that represents how much a model can separate between the valuation of the class variable. Higher the AUC, the better capability of the model to distinguishing between the duration of visits.
+### Precision
+**Precision** measures the proportion of predicted positives that are truly positive:
 
+\[
+\text{Precision} = \frac{TP}{TP + FP}.
+\]
+
+Precision is important because it reflects how many of the positive predictions are actually correct. In a hospital setting, a model with many false positives could lead to unreliable recommendations and unnecessary actions or resource allocation. Therefore, we only want to provide advice to hospitals and institutions if the model can predict the duration of inpatient visits with sufficient confidence.
+
+### Recall
+**Recall** (sensitivity) measures the proportion of actual positives that are correctly identified:
+
+\[
+\text{Recall} = \frac{TP}{TP + FN}.
+\]
+
+Recall reflects how many truly positive instances the model successfully captures. Low recall corresponds to many false negatives (missed positives), which could reduce the effectiveness of any procedure or policy decision informed by the model.
+
+### F1-score
+The **F1-score** summarizes precision and recall into a single value (harmonic mean):
+
+\[
+\text{F1} = 2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}.
+\]
+
+It ranges from 0 to 1, where higher values indicate a better balance between precision and recall.
+
+### ROC area (AUC)
+The final metric we consider is the ROC area (AUC). A ROC curve plots the true-positive rate against the false-positive rate across decision thresholds. ROC analysis provides a useful way to compare models and discard suboptimal ones, especially when a confusion matrix becomes difficult to interpret due to many class levels. The AUC summarizes how well a model separates classes: the higher the AUC, the better the model can distinguish between different duration categories. 
 
 \newpage
 # Machine learning algorithm performances
-We will perform a multitude of algorithms. We are interested in performing with Naïve Bayes, Simple Logistics, Nearest Neighbour (IBk), a decision tree in the form of a J48/C4.5, and a Random Tree. Besides, we also include ZeroR and OneR to measure baseline performance. Weka gives outcome for every class valuation (so in our case 1 to 14); we take the average sum of these outcomes, as it is better for comparison with other classifiers. The results are depicted in table 4.
+We evaluate multiple classification algorithms. Specifically, we train Naïve Bayes, SimpleLogistic, k-Nearest Neighbour (IBk), a decision tree (J48/C4.5), and a Random Tree. In addition, we include ZeroR and OneR as baseline models.
+
+Weka reports performance metrics for each class level (in our case, levels 1 to 14). To enable comparison across classifiers, we use the averaged (summary) performance measures reported by Weka. The results are shown in Table 4.
 
 ```{r Load results retrieved from Weka, fig.align = "center"}
 # Results will be loaded in like this,
@@ -707,16 +748,24 @@ kbl(normal.result, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-We now observe the results shown in the table 4. The results of all involved classifiers show a not-so-great picture; the accuracy is very low across all classifiers, ranging from a mere 16,20% for Nearest Neighbor (IBk) to a high-low result of 23,55% with Simple Logistics. This situation is not ideal as - on average - only one-fifth of the class variable is correctly predicted. This is because the class variable is positively skewed, which means low-valuations are more present than higher values. In our case, this means patients spent just a couple of days in hospital rather than, for example, more than a week.
+We now examine the results shown in Table 4. Overall, all classifiers perform poorly: accuracy is low across the board, ranging from 16,20% for Nearest Neighbour (IBk) to a highest value of 23,55% for Simple Logistics. This is not ideal because, on average, only about one-fifth of the class labels are predicted correctly. A likely reason is that the class variable is positively skewed, meaning lower values occur much more frequently than higher values. In practice, this reflects that most patients spend only a few days in the hospital rather than, for example, more than a week.
 
-Next up is determining which classifiers are most worthwhile regarding our research goals. As stated earlier, accuracy and precision are the most important metrics. The best option seems to be Simple Logistics with an accuracy of 23.60% and a precision of 0,523 - both are best-performing in their category. Deciding on a runner-up appears more challenging as J48 and Naïve Bayes both perform well. Naïve Bayes scores better in every metric we present, but J48/C4.5 has better optimization options, while Naïve Bayes' result can be considered its final product. Besides, the accuracy difference is a mere `r 20.76 - 19.55`%, not a significant difference. For this reason, we include both J.48/C4.5 in the coming sections.
+Next, we determine which classifiers are most worthwhile given our research goals. As stated earlier, accuracy and precision are the most important metrics. The best option appears to be Simple Logistics, with an accuracy of 23,60% and a precision of 0,523, which are the best values among the evaluated models.
+
+Selecting a runner-up is less straightforward because J48/C4.5 and Naïve Bayes both perform reasonably well. Naïve Bayes scores better on the presented metrics overall, but J48/C4.5 offers more options for tuning and optimization, whereas Naïve Bayes can be treated more as a fixed baseline. Additionally, the accuracy difference is only 1,21% (`r 20.76 - 19.55`), which is not substantial. For this reason, we include both J48/C4.5 and Naïve Bayes in the following sections.
 
 \newpage
 ## Optimizing our classifiers
-To determine the best possible algorithm, we need to play with some of our chosen algorithms' parameter settings. To accomplish this, we want to use Weka's Experimenter mode. This mode allows us to explore multiple parameter settings and rules, which are the most optimal. In other words, we want to crick up the accuracy of all algorithms involved. We will do this by exploring different meta-learners. The meta-learner CvParameterSelection was performed on J48/C4.5 and Simple Logistics to find the optimal parameter sets. Naïve Bayes was optimized manually, as it is a relatively simple algorithm with just a few settings. We present the results in the sections below. We perform all the classifiers on a cost-sensitive matrix in the earlier section and split the test set into ten pieces with cross-validation.
+To determine the best-performing algorithm, we tune the parameter settings of the selected models. To do this, we use Weka’s Experimenter mode, which allows systematic exploration of parameter ranges and identifies settings that yield the best performance. In other words, we aim to improve the accuracy of the evaluated algorithms by testing different meta-learning configurations.
 
-### J.48/C4.5
-First, we look at the parameter settings of the tree algorithm J48/C4.5. Here we have to deal with two parameters: the confidence factor parameter (C) and the minimal number of objects (M). The C value determines the amount of pruning performed; a small value corresponds to heavy pruning, whereas a large one to little pruning. The default is set to 0.25, and we will let the algorithm test with values ranging from 0.1 up to 0.5 in steps of 10. We set the limit to 0.5 as above; it will cause little to no pruning. \cite{Pruning-J48} Parameter M's default is set to 2, which means that the minimum instances per leaf guarantees that at each split, at least 2 of the branches will have the minimum number of instances. Increasing these values means that leaves become bigger. We test with a range from 2 to 10 in steps of 1. The results are shown in table 5.
+We apply the meta-learner `CvParameterSelection` to J48/C4.5 and Simple Logistics to identify optimal parameter sets. Naïve Bayes is tuned manually because it is relatively simple and has only a few adjustable settings. We report the results in the sections below. All classifiers are evaluated using the cost-sensitive setup introduced earlier, with 10-fold cross-validation.
+
+### J48/C4.5
+We first examine the parameter settings of the decision tree algorithm J48/C4.5. We tune two parameters: the confidence factor (C) and the minimum number of instances per leaf (M).
+
+The confidence factor C controls the degree of pruning: smaller values correspond to heavier pruning, while larger values result in less pruning. The default value is 0.25. We evaluate values from 0.1 to 0.5 in steps of 0.1. We cap the range at 0.5 because values above this tend to produce little to no pruning. \cite{Pruning-J48}
+
+Parameter M has a default value of 2 and specifies the minimum number of instances required per leaf. Increasing M results in larger leaves and a less complex tree. We test values from 2 to 10 in steps of 1. The results are shown in Table 5.
 
 ```{r Results J48 optimalization, echo=FALSE, fig.align = "center"}
 j48.results <- read.csv("datasets/dataset_results_weka/optimalization/j48-normal.csv",
@@ -727,11 +776,23 @@ kbl(j48.results, booktabs = T,
   column_spec(c(1, 3, 5), bold = T)
 ```
 
-Looking at the table 5, we observe three columns of settings that caused a given accuracy, depicted beside every used setting, respectively. We first looked at the outcomes of the individual parameter setting. Thereafter we combined a few of these settings to find the most optimum parameter settings. The confidence factor shows a pattern where lower values give higher accuracy; it means that we perform more pruning (reducing the decision tree's size), which leaves us with better outcomes. Nevertheless, we have to be careful with this parameter to overfit our model on the training data we provide. Therefore, we want to consider this value carefully. As for parameter M, we see an opposite pattern happening; increasing this value comes with better accuracy. With the default setting (a value of 2) returning 19.55% accuracy, we see an increase of `r 20.88 - 19.55`% percentage points as we set this to 5. With a value of 10, the accuracy becomes its most optimal point yet: 21.80%. In combining both optimal settings, we get an accuracy of 23.28%, also the highest in the Combination column. Optimizing this algorithm's settings, we see an increase of `r 23.28 - 19.55`% at the finish line. Truthfully, it is not a significant increase from its baseline performance, but it is still a better result. Considering we performed cross-validation on the confidence factor and the outcome looks promising not to be overfitted, we can take these settings and conclude that this is the most optimum form of J48 regarding our research.
+Looking at Table 5, we report three sets of results: accuracy obtained by varying each parameter individually, and accuracy obtained by combining selected parameter values. We first evaluated the effect of each parameter on its own. We then combined the most promising settings to identify an optimal configuration.
+
+For the confidence factor C, we observe a clear pattern: lower values yield higher accuracy. This indicates that heavier pruning (a smaller tree) improves performance. At the same time, we must be cautious when tuning pruning-related parameters, because overly aggressive tuning can lead to overfitting to the training folds. Therefore, we interpret improvements in C conservatively.
+
+For parameter M, we see the opposite trend: increasing M leads to higher accuracy. Starting from the default value of 2 (19.55% accuracy), increasing M to 5 improves accuracy by `r 20.88 - 19.55` percentage points. At M = 10, accuracy reaches its highest value in this range (21.80%). When combining the best-performing values of C and M, the accuracy increases to 23.28%, which is also the highest value reported in the “Combination” column.
+
+Overall, optimizing J48/C4.5 improves accuracy by `r 23.28 - 19.55` percentage points compared to the default settings. While this improvement is modest, it is consistent. Because the confidence factor was selected using cross-validation and the performance trend is stable across folds, we adopt these tuned settings as the optimized version of J48/C4.5 for the remainder of this study.
 
 \newpage
 ### Simple Logistics
-Now we turn to Simple Logistics (SL). SL has the advantage of built-in attribute selection. This means that it stops adding SimpleLinearRegression models when the cross-validation classification error no longer decreases. \cite{SL-model} This algorithm has quite a few parameters to its disposal, but we will not refrain from checkout every one of them, as not each one is relevant. Here we deal with the following set of parameters: useAIC (A), heuristicStop (H), maxBoostingIterations (M), numBoostingIterations (I), and weightTrimBeta (W). A determines when to stop iterations of adding models. This is an alternative to cross-validation. H is a value that decides whether a run is stopped if no new error minimum has not been reached in the last iteration of H. Weka's advice is to use the default value, but we are interested in its effects when we change this value. M sets a maximum number of iterations for LogiBoost. The default is set to 500, and it is advised to use a higher number in bigger datasets, which is the case for us. I  is a counterpart of M in which sets a fixed number of iterations for LogiBoost. If < 0, the number is cross-validated, or a stopping criterion on the training set is used, which is the default. Moreover, W states that only instances carrying (1 - W)% of the previous iteration weight are made available for the next one, resulting in fewer instances but maybe a more accurate model. We depict our findings in the table 6.
+We now turn to Simple Logistics (SL). SL has the advantage of built-in attribute selection: it stops adding SimpleLinearRegression models once the cross-validation classification error no longer decreases. \cite{SL-model} SL exposes many parameters, but not all are equally relevant for our use case. Here, we focus on the following set of parameters: `useAIC` (A), `heuristicStop` (H), `maxBoostingIterations` (M), `numBoostingIterations` (I), and `weightTrimBeta` (W).
+
+Parameter A (`useAIC`) determines when to stop adding models based on the Akaike Information Criterion (AIC), providing an alternative to cross-validation for model selection. Parameter H (`heuristicStop`) controls early stopping: a run can be terminated if no new minimum error has been reached within the last H iterations. Although Weka recommends using the default value, we test how changing H affects performance.
+
+Parameter M (`maxBoostingIterations`) sets the maximum number of LogitBoost iterations. The default is 500, and Weka recommends using a higher value for larger datasets, which applies in our case. Parameter I (`numBoostingIterations`) sets a fixed number of LogitBoost iterations. If I < 0, the number of iterations is chosen via cross-validation or a stopping criterion on the training set, which is the default behavior.
+
+Finally, W (`weightTrimBeta`) trims low-weight instances during boosting: only instances that account for (1 - W)% of the total weight from the previous iteration are retained for the next iteration. This reduces the number of instances considered in later iterations and may improve accuracy by focusing learning on higher-weight examples. The results of these parameter explorations are shown in Table 6.
 
 ```{r Results SL optimalization, echo=FALSE, fig.align = "center"}
 sl.results <- read.csv("datasets/dataset_results_weka/optimalization/sl-normal.csv", 
@@ -742,11 +803,19 @@ kbl(sl.results, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-All parameters involved do not have a big impact on improving the accuracy of the classifier. Combining parameters did not help either, but their results are not shown. This proves that the SL algorithm already delivered the closest to the most optimal situation possible. As we look back to the table 6, we already saw that this algorithm had a relatively high accuracy with default settings compared to others. Also, we already stated that this algorithm has the ability to stop adding models when cross-validation errors no longer occur; in other words, it stops when it finds the most optimum situation. For these reasons, we do not adjust parameters and continue with the default settings.
+The explored parameters do not meaningfully improve classifier accuracy. Combining parameters also did not lead to better performance (results not shown). This suggests that SL is already operating close to its optimal configuration on this dataset. As shown earlier in Table 6, SL achieved one of the highest accuracies using the default settings. In addition, SL includes an internal stopping criterion: it stops adding models once cross-validation error no longer decreases, which effectively prevents unnecessary complexity. For these reasons, we keep the default parameter settings for SL in the remainder of this study.
 
 \newpage
+
 ### Naïve Bayes
-As discussed earlier, Naïve Bayes is a relatively simple algorithm with just a few parameter settings, and therefore we optimized it manually. We had two options to research and present our findings in table 7, depicted underneath. These options are: 1) using a kernel density estimator rather than a normal distribution (K), and 2) using supervised discretization (D). The K option is a way to estimate the probability density function of a variable; in a sense, it is smoothing out the data a bit, in a different way than via the normal distribution. Alternatively, it weighs observations differently depending on how far from a certain point we are evaluating. The D parameter considers the class value, whereas the default, unsupervised discretization, does not. Therefore, we expect better results as the filter will break our attributes into bins that provide the most information about the class variable. We cannot combine the two parameters as that would create conflict.
+As discussed earlier, Naïve Bayes is a relatively simple classifier with only a few adjustable settings, so we tuned it manually. We evaluate two options and report the results in Table 7:
+
+1. Using a kernel density estimator instead of assuming a normal distribution (K); and  
+2. Using supervised discretization (D).
+
+Option K replaces the normal-distribution assumption with a kernel density estimate of the probability density function. This provides a smoother, data-driven estimate and can better capture non-normal feature distributions. Option D enables supervised discretization, meaning that binning is performed with knowledge of the class label. In contrast, the default (unsupervised) discretization does not consider the class label. Because supervised discretization aims to create bins that are informative for the target, we expect it to improve performance.
+
+We do not combine K and D because these settings are not compatible and would conflict.
 
 ```{r Results Bayes optimization, echo=FALSE, fig.align = "center"}
 bayes.results <- read.csv("datasets/dataset_results_weka/optimalization/bayes-normal.csv",
@@ -757,14 +826,19 @@ kbl(bayes.results, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-We now observe the table 7, where both introduced parameters positively impacted the accuracy and all other metrics involved. Namely, the K parameter increases the accuracy a few percentage points, so does the M parameter but to a less extent. In other areas, the results are even closer between both parameters: 0.203 precision for K and a score of 0.199 concerning M. But looking at the bigger picture, we conclude that K is the better option to go along with. Still, now optimized, Naïve Bayes still scores less on every metric than SL performed in its baseline. We will discuss which of the three classifiers is the final one after some more optimization. 
+We now examine Table 7. Both tested settings improve accuracy and the other reported metrics. In particular, enabling the kernel density estimator (K) increases accuracy by a few percentage points, while supervised discretization (D) also improves performance, but to a smaller extent. The precision values are very similar between the two settings (0.203 for K versus 0.199 for D). Overall, K provides the best results, and we therefore proceed with the kernel density estimator as the optimized Naïve Bayes configuration.
+
+Even after optimization, Naïve Bayes performs worse across all metrics than SL using its default settings. We revisit the final model choice after additional optimization steps.
 
 \newpage
+
 ## Selecting attributes
-Weka contains a meta-learner called 'AttributeSelectedClassifier.' This meta learner allows us to evaluate if a given classifier performs better without certain attributes. It does this in two steps: 1) dimensionality reduction through attribute selection and; 2) passing on to a given classifier. \cite{Weka-AttribSelectClass} We have the option to rank attributes hinged on their performance regarding the accuracy or any other metric. We will look at three different evaluators of this classifier to research if we are better off without any of our remaining attributes. These three different ones are 1) CorrelationAttributeEval, 2) InfoGainAttributeEval, and 3) GainRatioAttributeEval. Before dropping any attribute, we investigate the influence of a low-performing attribute. We also take their performance over the board of evaluators we are going to use into account. This can vary between evaluators and is essential to investigate. 
+Weka provides a meta-learner called `AttributeSelectedClassifier`. This meta-learner evaluates whether a classifier performs better after attribute selection. It operates in two steps: (1) dimensionality reduction through attribute selection, and (2) training and evaluating the chosen classifier on the selected subset of attributes. \cite{Weka-AttribSelectClass}
+
+Attributes can be ranked based on their contribution to performance (for example, accuracy or other metrics). To assess whether removing attributes improves performance, we evaluate three attribute evaluators: (1) `CorrelationAttributeEval`, (2) `InfoGainAttributeEval`, and (3) `GainRatioAttributeEval`. Before removing any attribute, we examine the potential impact of low-performing features and compare attribute behavior across evaluators. Because different evaluators can rank attributes differently, it is important to consider consistency across methods.
 
 ### Correlation
-We look at the CorrelationAttributeEval, which calculates the correlation between each attribute and the class variable. When we run an evaluator, we look for values that outline a moderate-to-high or negative correlation, ranging from 1 to -1. We want to avoid attributes with a near-zero or zero correlation, as these attributes can potentially harm our model's performance. Therefore, we want to drop these attributes. The Ranker search method will be used here.
+We begin with `CorrelationAttributeEval`, which computes the correlation between each attribute and the class variable. Correlation values range from -1 to 1. We are primarily interested in attributes with moderate-to-strong positive or negative correlations. Attributes with near-zero correlation are less likely to contribute predictive signal and may add noise, so they are candidates for removal. We use the `Ranker` search method for this evaluation.
 
 ```{r Results correlation attribute evaluation, echo=FALSE, fig.align = "center"}
 corr.results <- read.csv("datasets/dataset_results_weka/attributes/correlation-normal.csv",
@@ -775,11 +849,12 @@ kbl(corr.results, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-We observe the results in the table 8, and it is not great, to say the least. Our highest scoring attribute is num_mediations with a score of 0.12651, and our least-scoring is rosiglitazone with a mere 0.000389. In most experiments, it is usual to use a cut-off score of 0.05 for an attribute's relevancy. If we would do this, we are left with four of the 23 discussed attributes. That would not be worth it if we want to continue with these research goals. If we proposed another cut-off of, for example, 0.01, we would lose eight attributes instead of 19. We like to look at the results of other evaluators before making a final decision.
+We observe the results in Table 8, and they are not very strong. The highest-scoring attribute is `num_medications` with a correlation of 0.12651, while the lowest-scoring attribute is `rosiglitazone` with a correlation of 0.000389. In many settings, a cutoff of 0.05 is used as a rough threshold for feature relevance. If we applied this cutoff here, only four of the 23 evaluated attributes would remain, which would be too restrictive for our purposes. If we instead used a cutoff of 0.01, we would remove eight attributes rather than 19. Before deciding on any threshold, we first examine the results from additional evaluators.
 
 \newpage
-### Info Gain
-Next up is an interesting evaluator called InfoGainAttributeEval, which looks at the information gain or entropy for each attribute for the output/class variable. Calculated values can range between 0 (no information) and 1 (maximum information). Attributes with a high valuation contribute more to the model than lower values do, as they reduce entropy more. There is the potential of removing attributes with a low valuation that could increase accuracy. Like we did in the correlation evaluator, we use the Ranker search method once more. We depict our results and findings in the table 9.
+
+### Info gain
+Next, we use `InfoGainAttributeEval`, which measures the information gain (entropy reduction) each attribute provides about the class variable. Values range from 0 (no information gain) to 1 (maximum information gain). Higher values indicate that an attribute reduces uncertainty about the class label more strongly and is therefore more likely to be useful for prediction. As with the correlation-based evaluator, low-scoring attributes may be candidates for removal if their inclusion adds noise without improving performance. We again use the `Ranker` search method. The results are shown in Table 9.
 
 ```{r Results info gain attribute evaluation, echo=FALSE, fig.align = "center"}
 info.results <- read.csv("datasets/dataset_results_weka/attributes/info_gain-normal.csv",
@@ -790,11 +865,14 @@ kbl(info.results, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-As we have seen in the section about correlation, we see that the same attributes perform worse than others. Some even perform so bad that they get a score of zero - number_emergency and number_outpatient - which shows that at least these two attributes are up for removal. Deciding on a cut-off value is difficult; what has considered a 'normal' cut-off value means, again, that we would throw away at least 80% of the attributes. In the case of 0.05, we would be left with only two attributes and with 0.01 eight attributes. We can look at the effects of removing sets of attributes at a time and rerun our classifiers to determine the effects.
+As in the correlation-based analysis, we observe that the same subset of attributes performs poorly compared to the others. Two attributes even receive a score of 0 (`number_emergency` and `number_outpatient`), suggesting that they contribute no measurable information about the class variable under this evaluator and are therefore candidates for removal.
+
+Choosing a cutoff value remains difficult. Using commonly cited thresholds would again remove most attributes. For example, with a cutoff of 0.05 we would retain only two attributes, and with 0.01 we would retain eight. Rather than selecting an arbitrary cutoff upfront, we can evaluate the effect of removing attributes in batches and rerun our classifiers to measure the impact on performance.
 
 \newpage
-### Gain Ratio
-This evaluator looks a lot like the one we just discussed. It is an enhancement of the InfoGain evaluator, with a normalized score. This method measures the significance of attributes concerning the class variable based on a gain ratio in more detail. A higher gain ratio means it reduces more entropy. We again use the Ranker search method. The results are shown in table 10.
+
+### Gain ratio
+The final evaluator we use is `GainRatioAttributeEval`. This method is closely related to information gain but applies a normalization that accounts for the intrinsic information of an attribute. In practice, it provides a more balanced view than raw information gain, especially when attributes have many possible values. A higher gain ratio indicates a stronger reduction in entropy with respect to the class variable. As before, we use the `Ranker` search method. The results are shown in Table 10.
 
 ```{r Results gain ratio attribute evaluation, echo=FALSE, fig.align = "center"}
 gain.results <- read.csv("datasets/dataset_results_weka/attributes/gain_ratio-normal.csv",
@@ -805,11 +883,18 @@ kbl(gain.results, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-Again, we see an occurring trend: the same five attributes - num_medications, num_lab_procedures, num_diagnosis, num_procedures, and change - perform the best with each evaluator. The same can be said about the other side. The attributes number_emergency and number_outpatient are both worst-performing once more. We will remove these attributes, at least. In the next section, we will discuss the attributes we will remove and which ones are here to stay.
+Again, we observe a consistent trend: the same five attributes—`num_medications`, `num_lab_procedures`, `num_diagnoses`, `num_procedures`, and `change`—rank highest across all evaluators. The same consistency holds for the lowest end of the rankings: `number_emergency` and `number_outpatient` are among the worst-performing attributes in every evaluation. At a minimum, we remove these two attributes. In the next section, we specify which attributes will be removed and which will be retained.
 
 \newpage
+
 ### Final decision
-As already stated, we will remove the attributes number_emergency and number_outpatient. Considering if we needed to remove more attributes is a more difficult decision, almost all involved attributes do not score sufficient even to come close to the considered normal cut-off value of 0.05 or, in some cases, 0.01. Therefore, we want to explore another option that involves relevancy in the information an attribute gives us. For example, the attribute gender contains critical information regarding further research goals, and being able to separate cases on gender is vital in medical studies but has a low score in every attribute evaluation. Even though it has a low score, we want to retain it because of its content. Another example is metformin, which also scores low but is not of importance as diabetesMed. When applying this logic across the broad of attributes, we select candidates to remove. These are, in random order: metformin, diabetesMed, rosiglitazone, pioglitazone, glipizide, and glyburide. This leaves us with 16 attributes, including the class variable. We performed all our classifiers again on the new state of the dataset. We only consider accuracy. The results are depicted in table 11.
+As stated above, we remove `number_emergency` and `number_outpatient`. Deciding whether to remove additional attributes is less straightforward. Most attributes score far below commonly used cutoff values such as 0.05 (and often even 0.01), meaning that a strict threshold-based approach would discard the majority of features.
+
+Instead, we also consider the practical and clinical relevance of each attribute. Some variables may score low in these evaluators but still be important to retain for interpretation and subgroup analyses. For example, `gender` scores low across evaluators, but retaining it is important because stratifying outcomes by gender is common in medical research and may be relevant for downstream analyses. In contrast, other low-scoring attributes may be redundant or less informative given the presence of higher-level medication indicators (for example, `diabetesMed`).
+
+Using this combination of evaluator output and domain relevance, we select additional candidates for removal. These are: `metformin`, `diabetesMed`, `rosiglitazone`, `pioglitazone`, `glipizide`, and `glyburide`. This results in a dataset with 16 attributes, including the class variable.
+
+We then rerun all classifiers on this reduced feature set and compare performance using accuracy. The results are shown in Table 11.
 
 ```{r Final results, echo=FALSE, fig.align = "center"}
 final.results <- read.csv("datasets/dataset_results_weka/attributes/final-attributes.csv",
@@ -820,14 +905,17 @@ kbl(final.results, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-We now observe table 11, and we can see that removing said attributes improves only the accuracy and other metrics of Naïve Bayes and J48/C4.5; Simple Logistics performs slightly worse with fewer attributes. Taking the best-performing version of a classifier seems to the best option. So in the case of taking Simple Logistics as our final model, we need to decide whether we want to keep the attributes we removed that concluded in better accuracy for both other models or get rid of them here. The attributes that were removed contained very little important information relative to others. Never mind that they resulted in better accuracy in the case of Simple Logistics - but not with a big margin (just 0.13%). Therefore, we are going to continue with fewer attributes for each classifier. 
+We now examine Table 11. Removing the selected attributes improves the accuracy (and other metrics) for Naïve Bayes and J48/C4.5, while Simple Logistics performs slightly worse with the reduced feature set. In practice, it makes sense to use the best-performing version of each classifier. Therefore, if we select Simple Logistics as the final model, we must decide whether to keep the removed attributes (which improve performance for the other models) or remove them to maintain a consistent reduced feature set across models.
+
+The removed attributes contain relatively little useful information compared to the remaining features. Although keeping them benefits Simple Logistics, the improvement is small (0.13 percentage points). For consistency, and because the difference is marginal, we continue with the reduced attribute set for all classifiers.
 
 \newpage
+
 ## Confusion matrices
-In this section, we look at the confusion matrices of the best-fitting versions of our chosen classifiers. Since we have a class variable with 14 values, a matrix would have a 14x14 structure. For the reason of that complexity, we have always looked at the weighted average when comparing models. Now that we want to make a final decision on which model we are going to use, with the fact that all our models' performances are relatively close to one another, it can help to look at the details for making a final decision.
+In this section, we examine the confusion matrices of the best-performing versions of our selected classifiers. Because the class variable has 14 levels, each confusion matrix has a 14×14 structure. Due to this complexity, we previously relied on weighted averages for model comparison. However, because the overall performances of the models are relatively close, examining confusion matrices can provide additional insight and help guide the final model choice.
 
 ### Naïve Bayes
-We will look at the outcome regarding Naïve Bayes first. The confusion matrix is shown in the table 12. When analyzing a confusion matrix, it is essential to know that the (longest) diagonal line represents all true predictions. Off-diagonal elements are the ones that are mislabeled by a classifier. Naturally, the higher the diagonal values, the better as it indicates many correct predictions (i.e., a high TP rate). Naïve Bayes performed relatively well with an accuracy of 23.42%.
+We begin with Naïve Bayes. The confusion matrix is shown in Table 12. In a confusion matrix, the main diagonal represents correct predictions. Off-diagonal cells represent misclassifications. In general, higher values along the diagonal indicate better performance because more instances are correctly classified. Naïve Bayes performs reasonably well, achieving an accuracy of 23.42%.
 
 \begin{table}[ht]
 \centering
@@ -852,11 +940,14 @@ We will look at the outcome regarding Naïve Bayes first. The confusion matrix i
 \caption{\label{fig: Confusion matrix Naïve Bayes} Confusion matrix based on the optimal settings regarding Naïve Bayes}
 \end{table}
 
-When we observe the results, we see - again - that our data is positively skewed as the total instances decrease while the time in hospital spent increases. This is exactly the problem when predicting the exact time a patient will spend in the hospital; we have much data regarding short visits and not so much with longer visits. Tackling this problem means more instances for longer visits, as we get more information regarding these instances. Something that we lack right now. Besides, the accuracy and precision per class variable also decrease with increasing total time spent in the hospital. For example, we only have four correct predictions when looking at 14 days spent in the hospital. Compare that to 5.036 instances for one day in the hospital (a). 
+When we examine the results, we again observe that the data is positively skewed: the number of instances decreases as length of stay increases. This imbalance is a key challenge when predicting the exact time a patient will spend in the hospital. We have many examples of short stays but relatively few examples of long stays, which limits how well a classifier can learn patterns associated with longer admissions. Addressing this issue would require more instances for the longer-stay classes, which we currently lack.
+
+In addition, accuracy and precision per class generally decrease as length of stay increases. For example, for the 14-day class we obtain only four correct predictions, compared with 5,036 correct predictions for the 1-day class (class a).
 
 \newpage
+
 ### Simple Logistics
-Next up is the confusion matrix retrieved from the Simple Logistics classifier, depicted in table 13. Simple Logistics had a better accuracy without removing any initial attributes, but we decided to use the one with fewer attributes regardless. This was that supplying unnecessary attributes for a small increase in accuracy is not worth the burden. Therefore, we have a Simple Logistics classifier that performs with a 23.47% accuracy.
+Next, we examine the confusion matrix from the Simple Logistics classifier, shown in Table 13. Although Simple Logistics achieved a slightly higher accuracy when using the full feature set, we proceed with the reduced feature set. The rationale is that retaining additional low-value attributes for only a small gain in accuracy is not worth the added complexity. With the reduced attribute set, Simple Logistics achieves an accuracy of 23.47%.
 
 \begin{table}[ht]
 \centering
@@ -881,11 +972,13 @@ Next up is the confusion matrix retrieved from the Simple Logistics classifier, 
 \caption{\label{fig: Confusion matrix Naïve Bayes} Confusion matrix based on the optimal settings regarding Simple Logistics}
 \end{table}
 
-The presented matrix looks quite familiar to Naïve Bayes - positively skewed and not many predictions regarding higher valuations. We can see but is a little difficult to do so, that the number of correct predictions regarding a is significantly less than seen in Naïve Bayes. The numbers stand at 4.556 for Simple Logistics and 5.036 regarding Naïve Bayes. In contrast, the true positives of other class variables are higher across the board... but this effect wears off when the class variables increase. This effect could be the result of the weight Simple Logistics puts on attributes. It is a more complex classifier than Naïve Bayes. However, it does not result in a better-performing classifier.
+The confusion matrix for Simple Logistics shows a similar pattern to Naïve Bayes: the class distribution is positively skewed, and there are few correct predictions for the higher-valued length-of-stay classes. It is also noticeable that the number of correct predictions for class a (1 day) is lower than for Naïve Bayes: 4,556 for Simple Logistics versus 5,036 for Naïve Bayes. 
+
+In contrast, Simple Logistics produces more correct predictions for several of the other classes, although this advantage becomes smaller as the length of stay increases. This may reflect the way Simple Logistics assigns weights to attributes and models more complex decision boundaries than Naïve Bayes. However, despite this increased model complexity, the overall performance does not improve meaningfully.
 
 \newpage
 ### J48/C4.5
-Last but not least is J48/C4.5, where accuracy of 23.42% was achieved after attribute selection. The confusion matrix of the classifier is shown in the table 14.
+Finally, we evaluate J48/C4.5. After attribute selection, the classifier achieves an accuracy of 23.42%. The corresponding confusion matrix is shown in Table 14.
 
 \begin{table}[ht]
 \centering
@@ -910,13 +1003,16 @@ Last but not least is J48/C4.5, where accuracy of 23.42% was achieved after attr
 \caption{\label{fig: Confusion matrix Naïve Bayes} Confusion matrix based on the optimal settings regarding J48/C4.5}
 \end{table}
 
-Again, we see almost the same results in the performance. There are some differences between individual class variables' performances, but not many dissimilarities than the other discussed classifiers. Another point regarding J48 is that the tree produced is massive and too complex to be informative. This is also related to the number of attributes and class variables. The reason given can be legitimate to renounce this classifier because of the great similarities between all involved classifiers.
+The overall performance of J48/C4.5 is again very similar to that of the other classifiers. While there are small differences in how individual class levels are predicted, the confusion matrix does not reveal substantial advantages over Naïve Bayes or Simple Logistics. In addition, the resulting decision tree is very large and complex, which limits interpretability. This complexity is likely driven by the number of predictors and the 14-level class variable. Given the strong similarity in performance across models, the lack of interpretability provides an additional reason to deprioritize J48/C4.5.
 
-Observing the chosen classifiers' confusion matrices did not result in a breakthrough in choosing the final model. As we already established before discussing the matrices, is that the classifiers perform almost perform the same. There are some differences in the accuracy per class variable, but this is not enough overall. Having an accuracy of around 23% is just not acceptable for a model that needs to exactly predict the time spent in the hospital. This is mostly due to the skewness of our data. For example, having more instances regarding longer visits would help determine the difference between the total time spent in the hospital. A model predicting the exact length in days is too good to be true; therefore, we want to explore different scenarios where a more accurate model is helpful. Furthermore, of course, thinking about methods to increase accuracy. This is exactly what we are going to do in the next sections.
+Inspecting the confusion matrices did not lead to a clear choice of a final model. As noted earlier, the three classifiers perform comparably overall. Although there are minor differences in accuracy across individual class levels, these differences are not sufficient to justify selecting one model over the others. More importantly, an overall accuracy of approximately 23% is not acceptable for a model intended to predict the exact length of hospital stay in days.
+
+A major driver of this limitation is the strong class imbalance in the target variable. The dataset contains many encounters with short stays and relatively few encounters with long stays, which restricts the models’ ability to learn patterns associated with longer admissions. In this setting, attempting to predict the exact length of stay as a 14-class problem is likely too granular. Therefore, the next sections focus on alternative scenarios that may yield a more useful and accurate model, as well as methodological changes aimed at improving performance.
 
 \newpage
+
 # Change of plans
-As we have seen in the presented results in the sections above, our model's accuracy is softly said, not great. We top at an accuracy of 23.60%, which is generally seen as too low to be used in daily life situations. In this section, we explore more abrupt ways to increase the accuracy; think of restructuring or removing instances from our class variable, which we did not want to do first. Also, we could change the research question to be more applicable to the new situation.
+The results above indicate that the current approach does not produce a model with sufficient predictive performance. The best accuracy achieved is 23.60%, which is too low for practical use in a clinical or operational context. In this section, we explore more substantial strategies to improve predictive performance. These include restructuring the target variable (for example by merging classes), applying more aggressive instance selection, and reconsidering the research question to better match what can be learned reliably from the available data.
 
 ## Effects of removing instances
 ```{r Calculating amount of instances per value}
@@ -932,7 +1028,9 @@ write.csv(instance.data,
           row.names = FALSE)
 ```
 
-As we have seen, there is no magic trick that would increase accuracy without severely adjusting our data. Think about removing instances with higher valuation, reconstructing instances, or manually giving weight to high values to create a more normal-looking distribution. We already performed a cost-sensitive classifier to give more weight to values with fewer instances. Awarding even more weight could create a false image of what is really going on. Removing instances with higher values that are less covered is the last thing we want to do. Then we need to draw a line somewhere: what values can stay and which ones need to go? To illustrate the effects of removing high-value instances, we consider removing instances with a valuation ranging from 11 to 14; therefore, we would remove `r count.data %>% filter(time_in_hospital %in% c("11", "12", "13", "14")) %>% numcolwise(sum)(.)` instances, which translates to a loss of around 6%. After removal, we are left with 66.871 instances. 
+As shown above, there is no straightforward way to increase accuracy without making substantial changes to the dataset. Options include removing high-value classes with few instances, restructuring the target variable, or increasing the weights of rare classes to obtain a more balanced distribution. However, these approaches have drawbacks. We already used a cost-sensitive setup to give more weight to classes with fewer instances, and increasing these weights further could distort the results. Removing high-value classes is also undesirable, because it requires defining an arbitrary cutoff.
+
+To illustrate the effect of removing rare high-value instances, we consider excluding `time_in_hospital` values from 11 to 14. This would remove `r count.data %>% filter(time_in_hospital %in% c("11", "12", "13", "14")) %>% numcolwise(sum)(.)` instances, corresponding to a loss of around 6%. After removal, we would retain 66,871 encounters.
 
 ```{r Inserting results with less instances, echo=FALSE, fig.align = "center"}
 diff.instances <- read.csv("datasets/dataset_results_weka/base/less_instances.csv",
@@ -943,18 +1041,22 @@ kbl(diff.instances, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-Now that we have a new, temporary dataset, we turn to Weka once more and see if the rate of correctly classified instances has improved. The short-hand answer to that question is yes, it has improved, but not substantially enough to consider removing these instances for our final model. We performed the J48 and Simple Logistics classifiers again and observed an improvement of 1,13% compared to our first run (19,81% versus 20,94%) for J48. We noticed a similar trend for Simple Logistics. Here, the improvement is just 1,33%. The results are depicted in table 15. Removing 6% of our instances for such little improvement in accuracy overall is not worthwhile; therefore, we can safely conclude that this method is not what we are looking for in determining a better accuracy.
+With this temporary dataset, we return to Weka and evaluate whether the proportion of correctly classified instances improves. In short, accuracy increases, but not enough to justify removing these instances in the final model. We reran J48 and Simple Logistics and observed an improvement of 1,13 percentage points for J48 (from 19,81% to 20,94%). Simple Logistics shows a similar trend, with an improvement of 1,33 percentage points. The results are shown in Table 15.
+
+Given that this requires removing 6% of the dataset for only a small gain in accuracy, this approach is not worthwhile. We therefore conclude that excluding the high-value instances (11–14 days) is not an effective strategy for achieving substantially better performance.
 
 \newpage
 ## A new research goal
-Another option to improve accuracy could be a relabeling of the attribute. This method has the upside of retaining all instances. This method's downside is that we create bigger data groups, thereby removing the chance of exactly determining how many days were spent in the hospital. While we cannot determine exactly how many days a patient spent in the hospital, we can separate visits based on classification, such as "a brief visit" or "a longer visit". So, classification is still possible but is less specific. We considered a relabeling with two different valuations: 
+Another option to improve accuracy is to relabel the target attribute. The advantage of this approach is that all instances are retained. The drawback is that the classes become broader, which removes the possibility of predicting the exact number of days spent in the hospital. Instead, we can predict clinically meaningful categories, such as a brief versus a longer visit. This framing still supports classification, but at a lower resolution.
+
+We consider a binary relabeling with two classes:
 
 \begin{enumerate}
-  \item Time spent in hospital is within or equal to 5 days (brief visit); and
-  \item Time spent in hospital is longer than five days (long visit).
+  \item Time spent in hospital is less than or equal to 5 days (brief visit); and
+  \item Time spent in hospital is longer than 5 days (long visit).
 \end{enumerate}
 
-In the next code section, we mutate the time_in_hospital attribute, as described above. We also show the implications of relabeling in figure 22 . As we can see, we now have two classes comprising of 55.000 and 19.000 instances, respectively.
+In the next code section, we mutate `time_in_hospital` according to this definition. We also show the effect of this relabeling in Figure 22. The resulting two classes contain approximately 55,000 and 19,000 instances, respectively.
 
 ```{r Creating new labels}
 final.data.label <- final.data %>%
@@ -990,7 +1092,7 @@ figure <- ggarrange(p1, p2,
 figure
 ```
 
-Now that we have a new dataset, we turn to Weka once more to analyze the new dataset. The results of this are shown in table 16.
+With the relabeled dataset, we return to Weka to evaluate classifier performance under the new target definition. The results are shown in Table 16.
 
 ```{r Results relabeling, echo=FALSE, fig.align = "center"}
 label.result <- read.csv("datasets/dataset_results_weka/base/relabeled.csv",
@@ -1001,18 +1103,19 @@ kbl(label.result, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-Having obtained results regarding both datasets, we can determine the differences. As expected, accuracy rose across the broad of classifiers; most experienced an increase of at least 50 percentage points, except for IBk, which rose 40 percentage points. IBk already had the least sufficient outcome in previous Weka runs, so logically we would not have expected it to become best-performing. When considering taking a final dataset to the next stage in our research, we must weigh if a less specific attribute is worth having better accuracy (and for every other metric, for that matter). 
+Having obtained results for both target definitions, we can compare their performance. As expected, accuracy increases across the full set of classifiers. Most models improve by at least 50 percentage points, with the exception of IBk, which improves by roughly 40 percentage points. IBk also performed worst in the earlier experiments, so it is unsurprising that it does not become competitive after relabeling.
 
-As we already discussed, having a sense of the duration spent in the hospital is still present. Additionally, we can now predict more accurately by a large margin. In contrast, if we come put with a way to produce more sufficient outcomes with the initial dataset, we can always switch back. It seems that the relabeled dataset looks the most promising right now, and therefore we will continue our analysis with this dataset.
+When deciding which dataset to carry forward, we must weigh whether the loss of specificity in the target variable is acceptable in exchange for substantially better predictive performance. Although we no longer predict the exact length of stay in days, the relabeled outcome still provides useful information about hospital duration (brief versus long stay), and the predictive accuracy improves markedly. If a future approach yields stronger performance on the original 14-class target, we can revisit that formulation. At this stage, the relabeled dataset is the more promising option, and we therefore continue the analysis using this binary outcome.
 
-When considering classifiers that are best for further use, we consider both Simple Logistics (78.55%) and Random Forest (78.72%) to be most worthwhile. They both scored best across every metric. We will try to optimize these classifiers to increase accuracy even more in the next sections, hopefully.
+Among the evaluated classifiers, Simple Logistics (78.55%) and Random Forest (78.72%) perform best and are the most suitable candidates for further development. In the next sections, we attempt to optimize these classifiers to improve accuracy further.
 
 \newpage
+
 ## Attribute selection
-We already discussed an attribute selection regarding the initial dataset, but since we changed the class variable, it is necessary to weigh every attribute again. We consider the same meta learner and evaluators as before; that would be the evaluators CorrelationAttributeEval, InfoGainAttributeEval, and GainRatioAttributeEval. We will discuss the results of each method, as we did earlier.
+We previously performed attribute selection on the original dataset. Because the class variable has now changed, we reassess attribute relevance for the relabeled dataset. We use the same meta-learner and evaluators as before: `AttributeSelectedClassifier` with `CorrelationAttributeEval`, `InfoGainAttributeEval`, and `GainRatioAttributeEval`. We discuss the results of each method in the following subsections.
 
 ### Correlation
-We look at the CorrelationAttributeEval, which calculates the correlation between each attribute and the class variable. When we run an evaluator, we look for values that outline a moderate-to-high or negative correlation, ranging from 1 to -1. We want to avoid attributes with a near-zero or zero correlation, as these attributes can potentially harm our model's performance. Therefore, we want to drop these attributes. The Ranker search method will be used here.
+We begin with `CorrelationAttributeEval`, which calculates the correlation between each attribute and the class variable. Correlation values range from -1 to 1. Attributes with near-zero correlation are less likely to carry predictive signal and may add noise, so they are candidates for removal. We use the `Ranker` search method for this evaluation.
 
 ```{r Correlation - attribute selection, echo=FALSE, fig.align = "center"}
 corr.results <- read.csv("datasets/dataset_results_weka/attributes/correlation-relabeled.csv",
@@ -1023,11 +1126,12 @@ kbl(corr.results, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-We observe the results in the table 17, and we see comparable results as seen when performing the evaluator on the initial dataset. At least when talking about the ranking of the attributes. Nonetheless, the scores have improved overall. On the initial dataset, the best-performing attribute was num_medications with a score of 0.12651 and scores in this setting 0.35966. A cut-off of 0.01 or 0.05 seems doable; 0.01 would eliminate 4 attributes and 0.05 14, respectively. We like to look at the results of other evaluators before making a final decision.
+We observe the results in Table 17 and find patterns similar to those from the initial dataset, at least in terms of attribute ranking. However, the absolute scores are higher overall. For example, in the initial dataset the top-ranked attribute (`num_medications`) had a correlation score of 0.12651, whereas under the relabeled outcome it scores 0.35966. With these higher scores, applying a cutoff becomes more feasible: a threshold of 0.01 would remove four attributes, while 0.05 would remove fourteen. Before choosing a threshold, we first examine the results from the other evaluators.
 
 \newpage
+
 ### Information gain
-Next up is an interesting evaluator called InfoGainAttributeEval, which looks at the information gain or entropy for each attribute for the output/class variable. Calculated values can range between 0 (no information) and 1 (maximum information). Attributes with a high valuation contribute more to the model than lower values do, as they reduce entropy more. There is the potential of removing attributes with a low valuation that could increase accuracy. Like we did in the correlation evaluator, we use the Ranker search method once more. We depict our results and findings in the table 18.
+Next, we use `InfoGainAttributeEval`, which measures the information gain (entropy reduction) each attribute provides about the class variable. Values range from 0 (no information gain) to 1 (maximum information gain). Attributes with higher values reduce uncertainty about the class label more strongly and are therefore more likely to be useful for prediction. As before, low-scoring attributes may be candidates for removal if their inclusion adds noise without improving classifier performance. We again use the `Ranker` search method. The results are shown in Table 18.
 
 ```{r Information gain - attribute selection, echo=FALSE, fig.align = "center"}
 infogain.results <- read.csv("datasets/dataset_results_weka/attributes/info_gain-relabeled.csv",
@@ -1038,11 +1142,12 @@ kbl(infogain.results, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-As we have seen in the section about correlation, we see that the same attributes perform worse than others. Some even perform so bad that they get a score of zero - number_emergency - which shows that at least these two attributes are up for removal. Deciding on a cut-off value is difficult; what has considered a 'normal' cut-off value means, again, that we would throw away at least 80% of the attributes. In the case of 0.05, we would be left with only two attributes and with 0.01 eight attributes.
+As in the correlation-based evaluation, we observe that the same subset of attributes performs poorly compared to the others. Some attributes score as low as 0, such as `number_emergency`, indicating that they provide no measurable information about the class variable under this evaluator and are therefore candidates for removal. Selecting a cutoff remains challenging: applying commonly used thresholds would again remove a large fraction of the attributes. For example, with a cutoff of 0.05 we would retain only two attributes, and with 0.01 we would retain eight.
 
 \newpage
+
 ### Gain ratio
-This evaluator looks a lot like the one we just discussed. It is an enhancement of the InfoGain evaluator, which means it operates with a normalized score. This method measures the significance of attributes concerning the class variable based on the gain ratio in more detail. A higher gain ratio means it reduces more entropy. We again use the Ranker search method. The results are shown in table 19.
+Next, we use `GainRatioAttributeEval`, which is closely related to information gain but applies a normalization that accounts for the intrinsic information of an attribute. In practice, this can provide a more balanced ranking than raw information gain, particularly for attributes with many possible values. A higher gain ratio indicates a stronger reduction in entropy with respect to the class variable. As before, we use the `Ranker` search method. The results are shown in Table 19.
 
 ```{r Gain ratio - attribute selection, echo=FALSE, fig.align = "center"}
 gainr.results <- read.csv("datasets/dataset_results_weka/attributes/gain_ratio-relabeled.csv",
@@ -1053,11 +1158,16 @@ kbl(gain.results, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-We observe what we already have seen on the initial dataset and again on this dataset: the same five attributes - num_medications, num_lab_procedures, num_diagnosis, num_procedures, and change - perform the best with each evaluator. The same attributes performed the worst had the same results; number_emergency and number_outpatient had a score of zero. A cut-off point of 0.05 would leave us with one attribute and 0.01 with just the five said best-performing attributes. In the next section, we will discuss, based on each evaluator's results, which attributes are to be dropped to improve our model.
+We observe the same pattern seen in the initial dataset and again in this relabeled dataset: the same five attributes—`num_medications`, `num_lab_procedures`, `num_diagnoses`, `num_procedures`, and `change`—rank highest across all evaluators. At the other extreme, `number_emergency` and `number_outpatient` again score 0. A cutoff of 0.05 would leave only one attribute, and a cutoff of 0.01 would retain only the five top-ranked attributes. In the next section, we discuss which attributes to drop, guided by the combined evaluator results and their practical relevance.
 
 \newpage
+
 ### Final decision
-As stated and discussed before, we will remove the attributes number_emergency and number_outpatient at least. When deciding on removing more attributes, it becomes a more difficult decision to make. Each evaluator gives variable scores with different sets of criteria, and a one-sided cut-off score is difficult to determine. For example, the insulin attribute scores 0.0521 on correlation, so this would guarantee it to be in the final dataset, as 0.05 is considered a fairly normal cut-off score. However, insulin scores 0.008625 and 0.00945 on information gain and gain ratio, respectively. These different scoring methods make deciding on attributes to be dropped difficult. What is important is that the ranking of attributes is relatable to each other - a low-scoring attribute on the info gain evaluator also scores low with the others. With that, the correlation evaluator can be used for a cut-off score. The scoring here is significantly higher than seen elsewhere - ranging from 0.35 to 0.00155 compared to, for example, 0.06-0.001120 for gain ratio. We are interested in what happens when we perform a cut-off score of 0.01 and 0.05 regarding the correlation evaluator's results. The results are depicted in figure 18.
+As stated earlier, we remove `number_emergency` and `number_outpatient` at a minimum. Deciding whether to remove additional attributes is more difficult. The evaluators use different scoring criteria, so their absolute scores are not directly comparable, which complicates a single cutoff-based decision.
+
+For example, `insulin` scores 0.0521 under correlation, which would keep it if we used a 0.05 threshold. However, it scores 0.008625 and 0.00945 under information gain and gain ratio, respectively, which would exclude it under a 0.01 threshold. Despite these differences in scale, the rank ordering is broadly consistent: attributes that score low under one evaluator also tend to score low under the others. This consistency makes correlation a practical choice for applying a cutoff, especially because its scores span a wider range (approximately 0.35 to 0.00155), compared with gain ratio (approximately 0.06 to 0.00112).
+
+We therefore examine the effect of applying correlation-based cutoffs of 0.01 and 0.05. The results are shown in Figure 18.
 
 ```{r Final decision - attribute selection, echo=FALSE, fig.align = "center"}
 final.relabeled.result <- read.csv("datasets/dataset_results_weka/attributes/final-relabeled-attributes.csv",
@@ -1068,14 +1178,19 @@ kbl(final.relabeled.result, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-We now observe table 20. When removing below a score of 0.01, we would drop five attributes in total (number_emergency, pioglitazone, race, rosiglitazone, and number_outpatient). Regarding a cut-off score of 0.05, we are removing 14 attributes, and we would be left with a mere eleven attributes. Between the two classifiers, we see different outcomes. When looking at Simple Logistics, we see an increase in accuracy with the cut-off score of 0.01 but a decrease in accuracy when handling a score of 0.05. The increase in accuracy is not very significant; it only accounts for an increase of 0.004%. In contrast, Random Forest does not experience an increase in accuracy with both scores. It drops 0.27% when a 0.01 cut-off is applied and a staggering 3.8% loss with 0.05. A significant loss in accuracy. This concludes that removing the 14 attributes is not worthwhile and, frankly, not in the case of 0.01. Both classifiers do not experience a significant gain in accuracy, and Random Forest is even losing numbers. However, we are still removing the number_emergency and number_outpatient features as these do not reflex our research goals of exploring ways to predict time spent in the hospital.
+We now examine Table 20. Applying a cutoff of 0.01 would remove five attributes in total (`number_emergency`, `pioglitazone`, `race`, `rosiglitazone`, and `number_outpatient`). Applying a cutoff of 0.05 would remove 14 attributes, leaving only eleven attributes in the dataset.
+
+The two classifiers respond differently to these reductions. For Simple Logistics, applying a 0.01 cutoff yields a very small increase in accuracy, whereas applying a 0.05 cutoff reduces accuracy. However, the improvement at 0.01 is negligible (0.004 percentage points). In contrast, Random Forest does not improve under either cutoff: accuracy decreases by 0.27 percentage points with a 0.01 cutoff and by 3.8 percentage points with a 0.05 cutoff. This indicates that removing 14 attributes is clearly not worthwhile and that even the 0.01 cutoff provides no meaningful benefit overall.
+
+Nevertheless, we will still remove `number_emergency` and `number_outpatient`, because these features consistently score 0 and are not aligned with our goal of predicting time spent in the hospital.
 
 \newpage
-## Optimalization
-In the next section, we want to explore another set of optimization as other classifiers came out best than regarding the initial dataset. The meta learner CVParameterSelection evaluates many iterations to find the best parameter settings with the best-scoring accuracy.
+
+## Optimization
+In the next section, we explore further optimization, as the best-performing classifiers differ from those used in the initial dataset. The meta-learner `CvParameterSelection` evaluates multiple parameter configurations and selects the settings that maximize accuracy.
 
 ### Simple Logistics
-Once again, we turn to the classifier Simple Logistics for optimization purposes. When we did this once before, we already discussed all the important parameters and their default settings. We will refrain from researching every one of them once more, as we have seen that some do not greatly impact the performance. Weka also advises using some default settings, for example, with the heuristic stop (H) parameter. We already explored what the effects are if we play with this valuation and saw no reason to change the valuation. Therefore, we only want to explore the maxBoostingIterations (M) and numBoostingIterations (I) parameters again, as we saw promising results from testing on the initial dataset.
+We again optimize Simple Logistics. The key parameters and their default values were discussed earlier, and prior experiments showed that several settings have minimal impact on performance. Weka also recommends keeping certain defaults, such as the `heuristicStop` (H) parameter, which we previously tested without observing improvement. Therefore, we focus on the two parameters that showed the most promise in earlier experiments: `maxBoostingIterations` (M) and `numBoostingIterations` (I).
 
 ```{r SL optimalization, echo=FALSE, fig.align = "center"}
 sl.results <- read.csv("datasets/dataset_results_weka/optimalization/sl-relabeled.csv",
@@ -1086,11 +1201,13 @@ kbl(sl.results, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-Looking at the results in table 21, we see a comparison between the outcome gathered from the attribute selection (old) and the best result coming from the CVParameterSelection (new). We tested the I parameter with increasing values by 250, ranging from 0 to 750, and parameter M ranging from 0 to 1.500 in 6 steps. The best outcome was an M of 750 with an I of 0. The accuracy rose by 0.03 percentage points, and the ROC-Curve by 0.01; the rest of the metrics stayed the same. Seeing that we received a better result with these parameter settings, we will base our model on these.
+Looking at Table 21, we compare performance from the attribute-selection setup (old) with the best configuration identified by `CvParameterSelection` (new). We tested parameter I in steps of 250, ranging from 0 to 750, and parameter M ranging from 0 to 1,500 in six steps. The best result was obtained with M = 750 and I = 0. Under these settings, accuracy increases by 0.03 percentage points and the ROC area increases by 0.01, while the remaining metrics are unchanged. Because this configuration yields the best observed performance, we use these parameter settings for the Simple Logistics model going forward.
 
 \newpage
+
 ### Random Forest
-Random Forest is a classifier we have not optimized before. The classifier has many parameters to play with, but we are only interested in one of them: numIterations (I). The (I) parameter is the number of trees generated by the classifier, and the classifier will choose the smallest tree as the best. So the number of trees reflexes the chance of getting the most optimal tree; having a greater number of trees generated can, in theory, give bigger chances of getting a more optimal tree than with lower numbers. However, there is an equilibrium for generating numbers of trees and the chance of getting a more optimal tree. In a moment, there is not going to be a more optimal tree, and more iterations would only increase computing time. We want to explore these boundaries.
+Random Forest is a classifier that we have not optimized previously. Although it exposes many parameters, we focus on a single one: `numIterations` (I). This parameter controls the number of trees generated in the ensemble. In general, increasing the number of trees can improve performance by reducing variance and stabilizing predictions, but beyond a certain point additional trees yield diminishing returns while increasing computation time. We therefore explore a range of values for I to identify a practical trade-off between performance and runtime.
+
 
 ```{r RF optimalization, echo=FALSE, fig.align = "center"}
 rf.results <- read.csv("datasets/dataset_results_weka/optimalization/rf-relabeled.csv",
@@ -1101,16 +1218,17 @@ kbl(rf.results, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-We now look at the table 22 and see that the old outcome has a lower accuracy than the new result. We tested with increments of 100, starting from 0 all the way up to 500. The most optimal outcome depicted in the table 22 had a parameter (I) value of 200. Our picked metrics experienced increment; accuracy rose with 0.32% and the precision from 0.769 to 0.773, which were the two biggest risers. Based on these positive results, we will continue with these parameter settings.
+We now examine Table 22 and observe that the optimized (new) configuration achieves a higher accuracy than the baseline (old) configuration. We tested `numIterations` (I) in increments of 100, from 0 up to 500. The best performance in Table 22 occurs at I = 200. Several metrics improve under this setting: accuracy increases by 0.32 percentage points, and precision increases from 0.769 to 0.773, which are the two largest improvements. Based on these results, we continue with I = 200 for Random Forest.
 
 \newpage
-## Exploring other meta learners
-There are some other ways to improve accuracy, for example, by combining multiple predictions from multiple classifiers. This way of improving accuracy can be done with meta learners that are called ensemble learners. 'Ensemble' meaning a group of items viewed as a whole rather than individually. \cite{Word} We already explored Random Forest, an ensemble learner, and can be seen as an extension of Bagging. Besides, we will explore the ensemble learners Bagging, Boosting, Voting, and Stacking in this section.
+
+## Exploring other meta-learners
+Another strategy to improve predictive performance is to combine predictions from multiple classifiers. This can be done using ensemble meta-learners. An ensemble refers to a set of models that are considered jointly rather than individually. \cite{Word} We have already explored Random Forest, which is an ensemble method that builds on bagging. In this section, we evaluate additional ensemble approaches: Bagging, Boosting, Voting, and Stacking.
 
 ### Bagging
-Bagging or Bootstrap Aggregation is used to reduce the variance. As stated before, Random Forest contains bagging elements to do just that. Reducing variance is important, as a high variance means that the model's results can change dramatically by random noise. Thereby making it sensitive to over-fitting. The trick is that each method creates separate samples from the training set and then creates multiple classifiers for each sample. Each classifier gives different results, which gives a good perspective on the performances. Bagging then picks the best-performing classifier.
+Bagging (bootstrap aggregation) is primarily used to reduce variance. As noted earlier, Random Forest already includes bagging-like components. Reducing variance is important because high variance means that model predictions can change substantially in response to noise in the training data, which increases sensitivity to overfitting. Bagging addresses this by repeatedly sampling (with replacement) from the training set to create multiple bootstrap datasets. A separate classifier is trained on each dataset, and the predictions are aggregated (for example by majority vote). This aggregation typically yields more stable and robust predictions than any single model.
 
-Since Bagging already occurs in the Random Forest classifier, we will not include it here. This would be counterproductive. The results depicted in table 23 are from Simple Logistics only.
+Because bagging is already a core component of Random Forest, we do not evaluate Bagging as an additional wrapper for Random Forest. Doing so would be redundant. The Bagging results shown in Table 23 are therefore based on Simple Logistics only.
 
 ```{r Bagging, echo=FALSE, fig.align = "center"}
 bagging.results <- read.csv("datasets/dataset_results_weka/other_meta/bagging.csv",
@@ -1121,13 +1239,14 @@ kbl(bagging.results, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-Looking at the results depicted in table 23, we can see the most-optimal model (old) and the results of the bagging classifier (new). Bagging did not perform better than the older model. The reason could be that there is not much variance in our model; therefore, bagging could not improve accuracy. Based on the results, we will take the older model and retire the new one. 
+Looking at the results in Table 23, we compare the best-performing model from earlier (old) with the Bagging results (new). Bagging does not improve performance relative to the older model. One possible explanation is that the base model does not exhibit substantial variance, leaving limited room for bagging to provide gains. Based on these results, we retain the older model and do not continue with the Bagging configuration.
 
 \newpage
-### Boosting
-Boosting classifiers are mostly used to reduce bias in a model. There are multiple algorithms available, such as AdaBoost and Decision Trees. We are going to use AdaBoost in this section as it is the most accepted meta-classifier for Boosting. A high bias can cause under-fitting by missing out on information and correlations between the class and independent variables. It does this by starting with a base classifier prepared on the training set. After that, a second classifier is initiated to focus on wrongly predicted instances by the first run. This process continues with adding classifiers until the accuracy becomes stable or the limit of models is reached.
 
-Because Random Forest is already a meta learner, we will not include it in this section. \cite{Random-Forest}
+### Boosting
+Boosting methods are primarily used to reduce bias. Several boosting algorithms exist, but in this section we use AdaBoost, which is a widely used meta-classifier for boosting. High bias can lead to underfitting, where a model fails to capture relevant structure or relationships between the predictors and the class variable. Boosting addresses this by training a sequence of classifiers. It starts with a base classifier trained on the training set. Subsequent classifiers then place increased emphasis on instances that were misclassified in earlier rounds. This process continues until performance stabilizes or a predefined limit on the number of models is reached.
+
+Because Random Forest is already an ensemble approach, we do not include it in this boosting experiment. \cite{Random-Forest}
 
 ```{r Boosting, echo=FALSE, fig.align = "center"}
 boosting.results <- read.csv("datasets/dataset_results_weka/other_meta/bagging.csv",
@@ -1138,11 +1257,12 @@ kbl(boosting.results, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-We observe the table 24, where the results of the AdaBoost are depicted. We see a similar result as seen with the Bagging classifier; the accuracy does not improve across these meta-learners. AdaBoost may seem not to be able to get the accuracy of a stronger learner up. It may be that AdaBoost seems more appropriate for a learner with weak results (<= 1/2 accuracy). Therefore, we will not go further with the model created by AdaBoost.
+We now examine Table 24, which reports the results of AdaBoost. As with Bagging, AdaBoost does not improve accuracy relative to the best-performing single model. One possible explanation is that AdaBoost is less effective when the base learner is already relatively strong, leaving limited room for bias reduction. In contrast, boosting often provides larger gains when starting from a weaker learner. For these reasons, we do not continue with the AdaBoost configuration.
 
 \newpage
+
 ### Voting
-Voting is perhaps the most simple ensemble learners but is still fairly effective. It works by selecting two or more classifiers and selecting what criteria all classifiers will be combined. The default setting for the combination rule is taking the average of probabilities, but we will use Majority Voting. When all classifiers are combined, they can vote on what the outcome should be.
+Voting is one of the simplest ensemble approaches, but it can still be effective. The method combines two or more classifiers and aggregates their predictions using a predefined combination rule. While the default rule is often the average of predicted class probabilities, we use majority voting. Under majority voting, each classifier “votes” for a class label, and the final prediction is the class receiving the most votes.
 
 ```{r Voting, echo=FALSE, fig.align = "center"}
 vote.results <- read.csv("datasets/dataset_results_weka/other_meta/voting.csv",
@@ -1153,11 +1273,16 @@ kbl(vote.results, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-Looking at the table 25, we can see the best results retrieved from the performance of the Vote classifier. We tested on every used classifier, not regarding their past performances. The outcomes-based on Simple Logistics and Random Forest have been adjusted to their optimal parameter settings, as discussed before. We see that the Vote classifier produces relatively high accuracy, precision, and recall. It performed as the runner-up after Random Forest, with only a difference of 0.11% in accuracy. The FP rate of the Vote is quite higher than that of Simple Logistics, which performed third-best. Looking at the results, we can conclude that the Random Forest algorithm is the biggest contender. For that reason, we will not include the Vote as a potential candidate for the final model.
+Looking at Table 25, we summarize the best results obtained with the Vote classifier. We tested voting across all available classifiers, independent of their earlier performance. The Simple Logistics and Random Forest models used in this experiment were configured with the optimized parameter settings described above. The Vote classifier achieves relatively high accuracy, precision, and recall. It performs as the runner-up after Random Forest, with only a 0.11 percentage point difference in accuracy.
+
+However, the false-positive rate of the Vote classifier is higher than that of Simple Logistics, which ranks third. Overall, Random Forest remains the strongest individual contender. For that reason, we do not carry the Vote classifier forward as a candidate for the final model.
 
 \newpage
+
 ### Stacking
-Stacking looks like Voting as both works with multiple classifiers and their results. However, there is a huge difference. Stacking does not 'vote' on which classifier is the best-performing; it contains a meta-learner that learns how to combine the predictions from sub-models best. It can therefore increase our accuracy. We will test the stacking classifier on both Random Forest and Simple Logistics with Logistics as the meta-learner, as this classifier is widely used. Again, we test with the most optimal parameter settings.
+Stacking is similar to voting in the sense that it combines multiple classifiers, but the underlying mechanism is different. Instead of aggregating predictions through a fixed rule (such as majority vote), stacking trains a meta-learner that learns how to best combine the predictions of the base models. This can improve performance if the base classifiers make complementary errors.
+
+We evaluate stacking using Random Forest and Simple Logistics as base learners, with logistic regression as the meta-learner, which is commonly used for stacking. As before, we use the optimized parameter settings for the base classifiers.
 
 ```{r Stacking, echo=FALSE, fig.align = "center"}
 stacking.results <- read.csv("datasets/dataset_results_weka/other_meta/stacking.csv",
@@ -1168,14 +1293,15 @@ kbl(stacking.results, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-We now observe table 26, where we see that Stacking actually increased the accuracy to a new highest level. It did this to 79.04%, outperforming both Simple Logistics and Random Forest. The difference in performance between all models is not significant, but a better and more accurate model is always welcomed. We, therefore, will take the Stacking outcome to the next section as potentially our final model.
+We now examine Table 26 and observe that stacking increases accuracy to a new highest value. The Stacking classifier achieves 79.04% accuracy, outperforming both Simple Logistics and Random Forest. Although the performance differences between the models are small, selecting the best-performing approach remains preferable. We therefore carry the stacking configuration forward to the next section as a potential final model.
 
 \newpage
+
 ## Confusion matrices
-This section looks at the confusion matrices of the best-fitting versions of our chosen classifiers, which are Random Forest and the combining of classifiers in the Stacking meta-learner. Since we have a class variable with only 2 values, a matrix would have a 2x2 structure. Now that we want to make a final decision on which model we are going to use, with the fact that all our models' performances are relatively close to one another, it can help to look at the details for making a final decision.
+This section examines the confusion matrices of the best-performing classifiers: Random Forest and the Stacking ensemble. Because the relabeled class variable has only two levels, each confusion matrix has a 2×2 structure. Given that overall model performances are relatively close, inspecting the confusion matrices can provide additional detail and help guide the final model choice.
 
 ### Random Forest
-First, we are going to look at the table 27. Here, the confusion matrix retrieved from the best-performing outcome of Random Forest is depicted. Random Forest scored an accuracy of 78.77% at its most optimal. The matrix is based upon these results.
+We first consider Table 27, which presents the confusion matrix for the optimized Random Forest model. Random Forest achieves an accuracy of 78.77% under its best-performing parameter settings, and the confusion matrix is based on these results.
 
 \begin{table}[ht]
 \centering
@@ -1189,11 +1315,14 @@ First, we are going to look at the table 27. Here, the confusion matrix retrieve
 \caption{\label{fig: Confusion matrix Random Forest} Confusion matrix based on the optimal settings regarding Random Forest}
 \end{table}
 
-We observe the results from the matrix in the table 27. The data is still positively skewed as `r 47830 + 11283` instances are classified as 'a' and `r 3672 + 7653` as 'b'. There seems to be a difference in metrics scores between classes. The b class scores less than class a—for example, the TP.Rate for a is set at 0,929 and b at 0,404, which means that there is still a bias for class a. In contrast, the correctly predicted instances have been upped significantly, and we can look at the differences between the classes more precisely. It is still possible to determine what needs to change to reduce hospital visits' duration to a much better degree than the initial model.
+We examine the confusion matrix in Table 27. The relabeled outcome remains positively skewed: `r 47830 + 11283` instances belong to class a and `r 3672 + 7653` to class b. Performance also differs between the two classes. In particular, class b is predicted less accurately than class a. For example, the true-positive rate for class a is 0.929, whereas for class b it is 0.404, indicating that the model still favors class a.
+
+Despite this imbalance, the number of correctly classified instances is substantially higher than in the original 14-class setting, and the binary formulation allows a more precise comparison between the two outcome groups. Although class b remains more difficult to predict, the model output is still informative and can support analyses aimed at understanding and potentially reducing longer hospital stays.
 
 \newpage
+
 ### Stacking
-Next up is the Stacking classifier, which scored the best metrics scores seen thus far. We achieve this by combining the two best-performing classifiers, Random Forest, and Simple Logistics. The scored accuracy is set at 79.04%. The accompanying confusion matrix is depicted in the table 28. 
+Next, we evaluate the stacking classifier, which achieves the best overall performance observed so far. This model combines the two strongest base classifiers, Random Forest and Simple Logistics, using the stacking meta-learner. The resulting accuracy is 79.04%, and the corresponding confusion matrix is shown in Table 28.
 
 \begin{table}[ht]
 \centering
@@ -1207,14 +1336,17 @@ Next up is the Stacking classifier, which scored the best metrics scores seen th
 \caption{\label{fig: Confusion matrix Stacking} Confusion matrix based on the combining of Random Forest and Simple Logistics with the meta-learner Stacking}
 \end{table}
 
-Looking at the results, we see a picture complementary to that of Random Forest. The number of positives is bigger with a tiny margin (with `r 47669 + 8008 - 47830 - 7653` instances, to be exact). The difference comes from the fact that there are less true positives but more true negatives than Random Forest. Looking at the distribution of predicted instances, we can decide the classifier that will wrap our model.
+Looking at the results, we observe a pattern that is complementary to Random Forest. The number of predicted positives is slightly higher (by `r 47669 + 8008 - 47830 - 7653` instances). This difference reflects a trade-off: compared with Random Forest, stacking yields fewer true positives for class a but more true positives for class b. In other words, stacking shifts some predictions toward the minority class, which increases the number of correctly identified long-stay cases.
 
 ### Conclusion
-Now that we have a better picture of the distribution of predictions, we can decide on a final model to base our findings on. As already discussed, the accuracy and other Stacking's metrics looked a bit better than Random Forest alone. Therefore, it was not totally necessary to discuss both confusion matrices, as it was most likely to take Stacking as the final model. Nevertheless, looking at both matrices, we can determine where the differences are; although Stacking predicts less correct on class 1 (47.830 vs. 47.669 instances), it does relatively better predict class 2 than Random Forest (7.653 versus 8.008 instances). This means that the total correctly predicted instances (TN + TP) is higher with Stacking than observed in Random Forest. For that reason, Stacking will be appointed as our final model.
+With a clearer view of the prediction distributions, we can select a final model. As discussed earlier, stacking achieved slightly better overall performance than Random Forest alone. Inspecting the confusion matrices confirms where the difference arises. Although stacking produces slightly fewer correct predictions for class a (47,669 versus 47,830), it predicts class b more accurately than Random Forest (8,008 versus 7,653). As a result, the total number of correctly classified instances (true positives plus true negatives) is higher for stacking. For this reason, we select stacking as the final model for the remainder of this study.
 
 \newpage
+
 ## A ROC curve
-The last thing we want to look at before deciding on a final model is the receiver operating characteristic (ROC) curve. This curve represents a fraction between the true positive rate and the false positive rate. The curve is essentially a representation of a confusion matrix. A ROC space is created by plotting the FPR and TPR as *x* and *y* axes to depict their relationship. A diagonal line divides this space; a point above this line represent good results from a classifier (high TPR, low FPR), whereas points below the line present a not so good result (low TPR, high FPR). In this section, we take a look at the ROC curve of Stacking and analyze its results.
+Before finalizing the model choice, we also examine the receiver operating characteristic (ROC) curve. The ROC curve visualizes the trade-off between the true-positive rate (TPR) and the false-positive rate (FPR) across decision thresholds. It can be interpreted as a threshold-dependent extension of the confusion matrix.
+
+In ROC space, FPR is plotted on the x-axis and TPR on the y-axis. The diagonal line represents random performance: points above the diagonal correspond to better-than-random classification (higher TPR at lower FPR), whereas points below indicate worse-than-random performance. In this section, we inspect the ROC curve for the stacking model and interpret its results.
 
 ```{r ROC curve Stacking}
 roc_data <- read.table(
@@ -1256,9 +1388,13 @@ plt <- ggplot(data = roc_data,
 print(plt)
 ```
 \newpage
-Looking at figure 23, we see the ROC curve of stacking depicted. The red line is the classifier's performance, and the blue line divides the ROC space. We notice that our classifier performs well above the diagonal line, which means the classification is good. The optimum point seems to be around a TPR of 0.65 and an FPR of 0.25. This means that the positive cases that are predicted are actually positive ones, indicating high recall. A high recall/sensitivity is something we strive for. The Area under the ROC, which also one of our chosen metrics, is set at 0.803 and can be used as an accurate indicator. A high ROC Area means good accuracy. Our final model scores descent enough values to be a good model. 
+Looking at Figure 23, we observe the ROC curve for the stacking model. The red curve represents the classifier’s performance, and the diagonal reference line (blue) represents random classification. Because the ROC curve lies well above the diagonal, the model shows meaningful discriminative ability.
 
-Our next goal is to create a JavaWrapper that can accept new instances and analyze these based on our model. The wrapper can be found in this [BitBucket repository](https://bitbucket.org/djscheper/javawrapper/src/master/).
+A reasonable operating region appears around a true-positive rate (TPR) of approximately 0.65 at a false-positive rate (FPR) of approximately 0.25. This indicates a sensitivity (recall) of about 0.65 at that threshold, while accepting a moderate false-positive rate. In practice, the preferred threshold depends on the relative cost of false positives versus false negatives in the intended use case.
+
+The area under the ROC curve (AUC) is 0.803. AUC summarizes how well the model separates the two classes across all thresholds: higher values indicate better separability. An AUC of 0.803 suggests that the final model performs sufficiently well to be considered useful under this binary formulation.
+
+Our next goal is to implement a Java wrapper that accepts new instances and generates predictions using the trained model. The wrapper is available in the project’s Github repository.
 
 \newpage
 # References

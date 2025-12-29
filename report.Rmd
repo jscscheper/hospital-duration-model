@@ -1,14 +1,13 @@
 ---
 title: "Predicting duration of inpatient hospital visits with Machine Learning"
-author: "Dennis Scheper - 373689"
-date: "`r Sys.Date()`"
+author: "Jamie Scheper - 373689"
+date: "16 November, 2020"
 output: 
   pdf_document:
     number_sections: yes
   sansfont: Arial
 header-includes:
 - \usepackage{color, colortbl}
-- \usepackage{csvsimple}
 ---
 \fontfamily{arial}
 \fontsize{12}{15}
@@ -48,45 +47,45 @@ knitr::include_graphics('misc/hospital.jpg')
 
 \newpage
 # Introduction
-Health care prices have been on a steady rise for decades on end. \cite{Health-prices} This phenomenon has been an expensive problem for many Western countries that face an aging population, stirring prices up even more. The US Department of Health and Humans Services (HHS) determined that the average premium for family coverage has increased by 20 percent since 2013 and 55 percent since 2008. Spending on government health programs almost accounts for half of all U.S. health care expenditures, increasing the burden on taxpayers. It predicts that costs continue to increase by another 20 percent over the next five years. \cite{HHS}
+Health care costs have risen steadily over recent decades. \cite{Health-prices} This trend poses a growing challenge for many Western countries, particularly in the context of aging populations and increasing demand for medical care. In the United States, the Department of Health and Human Services (HHS) reports that the average premium for family coverage increased by 20 percent since 2013 and by 55 percent since 2008. Government health programs account for a large share of overall spending, increasing the burden on public budgets, and HHS projects that costs will rise by another 20 percent over the next five years. \cite{HHS}
 
-Some costs arise from misdiagnosing patients and adjusting care later on, not giving patients the care they need on their primary diagnosis, which leads to unnecessarily longer hospital stays as patients do not get the care they need. Interestingly, some of these cases have been linked to a second diabetes-related diagnosis. \cite{Diabetes-related-diagnosis} Meaning that if a diabetes test was undergone, the duration of an inpatient visit could potentially be reduced and, ultimately, reducing health care costs.
+One contributor to health care expenditure is prolonged hospitalization. Longer stays may occur when conditions are not identified or managed optimally early during admission, requiring later adjustments in treatment. Notably, some cases of prolonged admission have been linked to diabetes being recorded as a secondary diagnosis. \cite{Diabetes-related-diagnosis} This indicates that earlier identification of diabetes, for example through appropriate HbA1c testing, could support more timely management and potentially reduce length of stay, thereby lowering costs.
 
-Machine Learning could be a viable resource in confronting these issues, as recently, machine learning-related processes have been used to develop newer, more sustainable procedures by health institutions. \cite{Procedures} Unraveling patrons between different durations of a diabetes-related inpatient hospital visit is key, which can be done by exploring different algorithms/classifiers with data from patients who suffered from and were hospitalized based on a diabetes-related diagnosis.
+Machine learning may provide a useful approach to support hospital decision-making in this context. Recent work has applied machine learning methods to improve clinical and operational procedures in health care settings. \cite{Procedures} By identifying patterns associated with short versus long inpatient stays among diabetes-related admissions, predictive models can be developed and evaluated using hospital encounter data.
 
 ## Goal
-Based on the the information presented above, we like to formulate a research question to work on in this project. Our research question is:
+Based on the information presented above, we formulate the following research question:
 
-Is it possible, using machine learning techniques to predict the duration of an inpatient hospital visit?
+Is it possible, using machine learning techniques, to predict the duration of an inpatient hospital visit?
 
 \newpage
 # Materials and Methods
-All data used were obtained from a database consisting of 41 tables and 117 features, such as demographics (like gender, race, and age), inpatient or outpatient, and (in-hospital) mortality. \cite{OrgData} Data came from 130 hospitals in the USA for over ten years (1998-2008) and contained around 74 million unique visits by 18 million unique patients. This research used data that needed to accede to the following specifications: 
+All data were obtained from a database consisting of 41 tables and 117 features, including demographics (for example, gender, race, and age), inpatient and outpatient indicators, and in-hospital mortality. \cite{OrgData} The data were collected from 130 hospitals in the USA over ten years (1998–2008) and contain approximately 74 million unique visits by 18 million unique patients. For this study, encounters had to meet the following inclusion criteria:
 
 \begin{enumerate}
-  \item The record is a hospital admission; 
-  \item The encounter is diagnosed with "diabetes," any kind will satisfy; 
-  \item The length of admission was at least one day up to eighteen days; 
-  \item Laboratory test results are available; and 
-  \item Medications were administered. 
-\end{enumerate}  
+  \item The record represents a hospital admission;
+  \item The encounter includes a diagnosis of diabetes (any type);
+  \item The length of stay is between one and eighteen days (inclusive);
+  \item Laboratory results are available; and
+  \item Medications were administered.
+\end{enumerate}
 
-Of all encounters, 101.000 records fulfilled all specifications and were taking into account for further analysis. We took all 55 existing attributes, filtered and adjusted them until the dataset was better structured, had less missing values, and contained only the satisfying information. The final dataset is constructed by a preliminary analysis and preprocessing of the data described in detail in the Results section. 
+A total of 101,000 encounters met all criteria and were included for further analysis. We started from the 55 available attributes and applied filtering, recoding, and restructuring to improve data quality, reduce missingness, and retain variables relevant to the research question. The final dataset was constructed through preliminary analysis and preprocessing steps, which are described in detail in the Results section.
 
-The retrieved data was analyzed in Rstudio (version 4.0.2). The focus was on cleaning the data from missing values, removing attributes that would not contribute to our research goals, adjusting the structure of valuable attributes, and getting a better picture of the data structure. We used many external packages to explore our data. For example, the libraries 'plyr' (version 1.8.6) and 'dplyr' (version 1.0.2) were used extensively to mutate data, remove redundancies, and explore the correlation between attributes. Visualizations were made with the package 'ggplot2' (version 3.3.2). Other external packages used had a smaller function; for example, 'caret' (version 6.0-86) was used to remove near-zero variance attributes. All transformations regarding the data structure are thoroughly explained and choices made are argued in the supplied Exploratory Data Analysis or log paper, which can be found [here](https://bitbucket.org/djscheper/thema09/src/master/).\cite{Theme09}
+All analyses were performed in RStudio using R (version 4.0.2). Data cleaning focused on handling missing values, removing variables that were unlikely to contribute to prediction, recoding clinically meaningful attributes, and exploring the overall structure of the dataset. We used external packages for data manipulation and exploration, including `plyr` (version 1.8.6) and `dplyr` (version 1.0.2). Data visualizations were generated using `ggplot2` (version 3.3.2). We used `caret` (version 6.0-86) to identify and remove near-zero variance variables. All preprocessing decisions and transformations are described in the accompanying exploratory data analysis log, available in the project repository. \cite{Theme09}
 
-After cleaning the data, our focus turned to explore selecting a machine learning algorithm that could predict the duration of an inpatient hospital visit with high accuracy. We used the open-source machine learning software Weka (version 3.8) to accomplish this. Weka is a work environment, i.e., performing (internal) steps in data mining, preprocessing data, and building a predictive model. It contains many classifiers that include highly adaptable parameter settings to obtain the most accurate, predictive model. Its graphical user interface makes it easy for nonprogrammers such as biologists to work with data mining processes. We explored many classifiers/algorithms and even let them work together to obtain the best predictive model. We ranked classifiers based on their performance by evaluating the metrics True Positive Rate (TPR), False Positive Rate (FPR), accuracy, precision, recall, an F1-measure, and the produced ROC Area. These metrics are a good indication of how well a classifier performs on predicting.
+After preprocessing, we evaluated machine learning approaches for predicting inpatient length of stay. Model development and evaluation were performed using the open-source machine learning software Weka (version 3.8). Weka provides tools for preprocessing, training, and evaluating predictive models, including a wide selection of classifiers with configurable parameter settings. We evaluated multiple classifiers, including ensemble approaches, and compared performance using the following metrics: true-positive rate (TPR), false-positive rate (FPR), accuracy, precision, recall, F1-score, and area under the ROC curve (AUC). These metrics were used to assess overall performance and class-specific trade-offs.
 
-A user-friendly application was created based on the model created in Weka. The application is written in Java (version 11.0) and is accessible from the command-line. It predicts whether new instances are in for a brief visit or a longer visit, which translates to an inpatient visit less or equal to five days or longer than five days, respectively. Instances can be fed through an input file (ARFF or CSV) or from the command-line itself. The app makes use out of the Weka API package (version 3.8) for predicting new instances based on a predefined model, which was developed from our research using the Weka software. Command-line arguments were processed by the package Apache Commons CLI (version 1.4), which allows for a sleek and easy way to use the application. The appropriate link to the repository can be found [here](https://bitbucket.org/djscheper/javawrapper/src/master/).\cite{Javawrapper}
+Finally, we implemented a command-line Java application (Java version 11.0) that applies the trained Weka model to new instances. The application predicts whether an encounter corresponds to a brief visit (length of stay less than or equal to five days) or a long visit (greater than five days). New instances can be supplied via an input file (ARFF or CSV) or entered directly through the command line. The application uses the Weka API (version 3.8) to load the trained model and generate predictions. Command-line arguments are handled using Apache Commons CLI (version 1.4). The implementation is available in the project repository. \cite{Javawrapper}
 
 \newpage
 # Results
 ## Tackling missing values
-First, we take a look at how missing values are distributed in our dataset. This is depicted in figure 1, where the color black means a value is missing. The figure shows this per attribute, and we observe that some attributes have many missing values, and others have contained less. To get a better picture of these attributes and their missing values, we zoom in on these attributes in table 1.
+We first assessed the distribution of missing values across all attributes. Figure 1 visualizes missingness per attribute, where black indicates a missing value. The figure shows substantial variation: some attributes contain extensive missingness, whereas others contain little to none. To quantify this, Table 1 summarizes the number of missing values per attribute and the corresponding percentage.
 
 \begin{figure}
 \includegraphics{figures/missing_data.pdf}
-\caption{\label{fig: Missing values per attribute} Missing values per attribute (depicted in black).}
+\caption{\label{fig:missing-values}Missing values per attribute (missing values depicted in black).}
 \end{figure}
 
 \newpage
@@ -105,17 +104,19 @@ First, we take a look at how missing values are distributed in our dataset. This
   diag\_3 & 1423 & 1.40\% \\ 
    \hline
 \end{tabular}
-\caption{All attributes containing missing values, presented in the amount of missing values and its presence expressed in percentage}
-\label{Missing values}
+\caption{Attributes containing missing values, shown as counts and percentages.}
+\label{tab:missing-values}
 \end{table}
 
-We observe while looking at table 1 and figure 1 a multitude of different amounts of missing values. For example, the weight attribute is missing a staggering 97% of its valuation and gender, only missing three values. Having such a range of missing values, we decided to look at each attribute's contribution to our research goals and how much data is missing. If that contribution is minimal, we may decide to remove the attribute entirely. An example of such an attribute is payer_code, which is made up of payment; therefore, it is not really interesting to fill up the missing values here, and we removed it from the dataset. Besides removing payer_code, we proposed the same treatment for attribute weight; as mentioned earlier, it almost entirely contains missing values. The original authors stated that it is a result of government protocol. Knowing this, we can remove the attribute safely. We also remove medical_specialty for being too sparse.
+Table 1 and Figure 1 show that the extent of missingness differs markedly between attributes. For example, `weight` is missing for approximately 97% of encounters, whereas `gender` is missing for only three records. Given this range, we evaluated each attribute by balancing (i) the fraction of missing data and (ii) its relevance to the research goal. If an attribute had substantial missingness and limited expected value for prediction, we removed it from the dataset.
 
-For attributes with lesser amounts of missing values, we had the choice of doing two things: remove the instance with the missing values or revalue them on, for example, the most common valuation or label them as 'missing' instead of NA or as a question mark. For attribute race, we relabel the missing values to 'Missing/unknown' as removing has a potentially bigger impact on the outcome of the machine learning process. We handled diag_3 in the same manner. As for attribute gender, it holds three valuations: male, female, and missing or unknown, with only three instances falling into the latter category. For this reason, we decided to remove these records entirely.
+Following this rationale, we removed `payer_code`, which primarily reflects billing information and is not relevant for the present research objective. We also removed `weight` because nearly all entries are missing. According to the original authors, this missingness is related to protocol and documentation practices, further supporting exclusion. Finally, we removed `medical_specialty` due to its high sparsity.
+
+For attributes with lower levels of missingness, we either recoded missing values or removed a small number of records, depending on the expected impact on downstream analyses. For `race` and `diag_3`, missing values were relabeled as `Missing/Unknown` to avoid unnecessary loss of data. For `gender`, the missing/unknown category contained only three records; these records were therefore removed.
 
 \newpage
 ## Duplicates and removing redundant attributes
-The dataset contains multiple observations of inpatients visits. This may cause long-term issues as encounters, which is the unit of our analysis, are not statistically independent. Table 2 presents how many duplicates we have in our dataset and the percentage of the total records.
+The dataset contains multiple inpatient encounters for some patients. Because the encounter is the unit of analysis, repeated encounters for the same patient may violate the assumption of statistical independence and can introduce bias or noise in downstream analyses. Table 2 summarizes the number of duplicate records and their proportion of the full dataset.
 
 \begin{table}[ht]
 \centering
@@ -126,20 +127,25 @@ The dataset contains multiple observations of inpatients visits. This may cause 
   101.766 & 16.773 & 16.48\% \\ 
    \hline
 \end{tabular}
-\caption{Number of duplicates and its percentage in the total records}
+\caption{Number of duplicate encounters and their percentage of total records.}
+\label{tab:duplicates}
 \end{table}
 
-The total number of duplicates is 16.773 or 16.48% of total records. To ensure a statistically independent dataset, we remove all of these instances. As a result, we are left with `r format(round(as.numeric(101766-16773), 1), nsmall=0, big.mark=".", decimal.mark=",")` unique records, each record corresponding to one patient.
+A total of 16.773 records (16.48%) were identified as duplicates. To obtain a dataset of unique encounters, we removed these records. This resulted in `r format(round(as.numeric(101766-16773), 1), nsmall=0, big.mark=".", decimal.mark=",")` unique encounters, with each record corresponding to one patient.
 
-The dataset consisted of a couple of near-zero variances attributes mostly regarding the type of diabetic medicine a patient took. In most cases, none of these medicines were used by encounters and did not contain any useful information. For that reason, we removed all these attributes, which account for an amount of eighteen. The secondary and final diagnosis attributes were also removed as these are not relevant to our research goals. As our research regards inpatient visits only, we took at the attributes of emergency and outpatient visits to harm the results.
+We also removed near-zero variance attributes. These variables were primarily medication indicators with little to no variation across encounters and therefore provided minimal predictive value while increasing model complexity. In total, eighteen near-zero variance attributes were removed. In addition, the secondary and tertiary diagnosis variables (`diag_2` and `diag_3`) were excluded to reduce dimensionality, because they were not required for the modeling objectives in this study.
+
+Finally, because this study focuses on predicting inpatient length of stay, variables describing prior outpatient and emergency utilization were treated with caution and were reassessed during feature selection to determine whether they contributed meaningfully to prediction.
 
 \newpage
 ## Recoding and introducing new attributes
-As our dataset contains many categorical attributes, it presents some potential for attributes to be incorporated into one another, thereby creating a more robust and more efficient data structure. 
+Because the dataset contains many categorical attributes, several variables can be recoded or combined to create a more efficient and interpretable structure.
 
-First, we need to introduce a variable that is essential to our research goals - and the authors also adapt that. The variable 'HbA1c test' represents what the original authors describe as a unique opportunity to assess hospital protocol's current efficacy surrounding diabetes testing. So it is vital for our research goals to implement this variable, and has the following four valuations: 1) no HbA1c test performed, 2) HbA1c performed and the result is in the normal range, 3) HbA1c performed and the result is higher than 8%, with no changes in diabetic medications, and 4) HbA1c test performed, with a result greater than 8%, and diabetic medication was changed.
+First, we introduce an attribute that is central to our research goal and was also emphasized by the original authors: HbA1c testing status and the clinical response to the result. This variable reflects hospital practice around diabetes assessment and management and is defined using four categories: (1) no HbA1c test performed, (2) HbA1c performed with a result in the normal range, (3) HbA1c performed with a result greater than 8% and no change in diabetes medication, and (4) HbA1c performed with a result greater than 8% and diabetes medication changed.
 
-Moving on to the three attributes that describe admission type (admission_type_id), disposition type (disposition_type_id), and admission source (admission_source_id), present us with the potential to move these attributes into a single one as we are interested in only the difference between ICU and non-ICU protocols. These attributes are made up of a digit reference to, for example, what the source of admission was. These are described in a separate ID codebook, shown in tables 3, 4 and 5. Concerning the number of references to an ICU or non-ICU related instance, the admission type has three values representing ICU related instances, the disposition type five, and the admission source also has five valuations regarding ICU; all of these are labeled as 'yes,' the rest of the values will be labeled as 'no.' All of this will be contained by a new attribute called 'icu_related' After this implementation, the three original attributes are up for removal. Additionally, we removed all instances of patients dying, which is depicted as yellow in table 4.
+Next, we considered three administrative ID variables—`admission_type_id`, `disposition_type_id`, and `admission_source_id`. Each variable encodes encounter characteristics using numeric IDs (for example, the source of admission). Full descriptions for these IDs are provided in the separate codebook (Tables 3, 4, and 5). Because our primary interest is whether an encounter is ICU-related, we combined these three variables into a single binary attribute, `icu_related`. IDs that correspond to ICU-related circumstances were labeled as `yes`, and all remaining IDs were labeled as `no`. After constructing `icu_related`, the three original ID variables became redundant and were therefore treated as candidates for removal.
+
+Finally, we excluded encounters resulting in death, as indicated by the discharge disposition categories highlighted in Table 4.
 
 \begin{table}[ht]
 \centering
@@ -274,17 +280,19 @@ Attribute depicting the primary (diag_1) consists of a three-digit referring to 
 \end{table}
 
 \newpage
-The variance of the class attribute caused some difficulty predicting the exact duration of an inpatient hospital visit. The attribute consisted of fourteen different valuations (1-14 days). This wide range caused every classifier to have poor results regarding predicting; the top-performer was the classifier Simple Logistics with a mere 23.64% correctly predicted instances. Even after the optimization of parameter settings on multiple classifiers, we concluded that the class variable's existing structure was not going to bring any progression. For that reason, we decided to relabel it into two classes: a 'brief visit' and a 'long visit', which categorizes for an inpatient visit less or equal to five days and more than five days, respectively. This resulted in far better classification and makes it still viable to determine differences between both new valuations to, ultimately, reduce the duration of inpatient hospital visits by responding to those differences. The new and old distribution is depicted in figure 2.
+The original class attribute consisted of fourteen levels (1–14 days), which made predicting the exact duration of an inpatient hospital visit difficult. Across classifiers, performance was consistently poor; the best-performing model (Simple Logistics) achieved only 23.64% correctly classified instances. Even after parameter optimization, these results indicated that the current target formulation was too granular to be learned effectively from the available data. We therefore relabeled the outcome into two classes: a `brief visit` (length of stay less than or equal to five days) and a `long visit` (greater than five days). This relabeling substantially improved classification performance while still enabling comparison between short and long stays, which remains informative for identifying factors associated with prolonged admissions. The original and relabeled class distributions are shown in Figure 2.
 
 \newpage
 \begin{figure}
 \includegraphics{figures/labeling-differences.pdf}
-\caption{\label{fig: Relabeling of the class variable} Changes in distribution from relabeling the class variable, reducing variance from fourteen to two valuations}
+\caption{\label{fig:relabeling}Changes in distribution after relabeling the class variable from fourteen to two categories.}
 \end{figure}
 
 \newpage
 ## Normalization
-Since our dataset does not contain many numeric attributes, it makes normalization up for debate. In figure 3, we observe all numeric data without normalization represented in histograms. The distribution is very diverse across all plots; for example, plot A ranges between 0 and 15, whereas B's distribution is much wider (between 0 and >100 for some outliers). We notice across almost all histograms that counts of a valuation increases in the beginning and decrease slowly over higher valuations. This creates, in some plots, many outliers. Examples of this are plots E, F, and G, where there seem to be many instances regarding lower values and almost no higher valuations (in all of the examples, this is after the value of ten). For the reasons mentioned, we introduce a log-2 scale to reduce the range of valuation between numeric attributes; the results are shown in figure 3.
+Because the dataset contains relatively few numeric attributes, normalization is not strictly required. However, the numeric variables show heterogeneous ranges and right-skewed distributions. Figure 3 presents histograms of the numeric attributes prior to transformation. Some variables span a narrow range (for example, 0–15), whereas others include broad ranges with substantial outliers (>100). Across most histograms, counts are highest at low values and decrease gradually at higher values, resulting in long right tails. This pattern is particularly apparent for several visit-count variables, where values above ten occur only rarely.
+
+To reduce scale differences between numeric attributes and to compress the influence of extreme values, we applied a log2 transformation. The transformed distributions are shown in Figure 4.
 
 \begin{figure}
 \includegraphics{figures/distribution_his_1.pdf}
@@ -297,34 +305,34 @@ Since our dataset does not contain many numeric attributes, it makes normalizati
 \caption{\label{fig: Numeric data distribution with normalization} Numeric data presented in histograms on a log-2 scale.}
 \end{figure}
 
-Many instances have a valuation of zero, and with the introduction of a log-2 scale, we are about to transform these values into '-Inf' if nothing is done. To combat this, we added 0.1 to every value so that the valuation is still representable to its original valuation, and we do not have to remove all of these values. Looking at figure 4, we observe that the range of valuation between attributes is much smaller.  
+Because many instances have a value of 0, applying a log2 transformation directly would produce `-Inf` values. To avoid this, we added 0.1 to each numeric value prior to transformation. This preserves all observations while preventing undefined log values. In Figure 4, the transformed distributions show substantially reduced differences in scale between attributes.
+
 
 \newpage
 ## Correlation
-Correlation between attributes is important to determine. Highly correlated attributes may cause problems with machine learning speed, and it can reduce the precision of estimated coefficients. It is, therefore, necessary to look at the correlation between attributes. We do this for every numeric attribute.
+Assessing correlation between numeric attributes is important because strongly correlated predictors can introduce redundancy and, in some models, affect coefficient stability and interpretability. In addition, correlated variables can increase model complexity without adding predictive signal. We therefore evaluated pairwise correlations for all numeric attributes.
 
 \begin{figure}
 \includegraphics{figures/heatmap.pdf}
-\caption{\label{fig: Heatmap of numeric data} Heatmap of numeric attributes, with red depicted as a strong correlation, orange as a (small) correlation, and yellow as no correlation.}
+\caption{\label{fig:heatmap}Heatmap of numeric attributes. Red indicates strong correlation, orange weak correlation, and yellow little to no correlation.}
 \end{figure}
 
-Our heatmap (shown in figure 5) shows a strong correlation as red, a small correlation as orange, and no correlation as yellow. The combination of attributes that stand out is, for example, num_medications-time_in_hospital and num_procedures-num_medications. As we can see, it is mostly the num_medication attribute that has some correlation. Others do not stand out that much. We see that most attributes do not correlate much with each other, at least for the numeric attributes. 
+The heatmap in Figure 5 indicates that most numeric attributes show weak correlations with one another. The strongest associations involve medication and procedure-related counts, for example `num_medications` with `time_in_hospital` and `num_procedures` with `num_medications`. Overall, `num_medications` is the numeric attribute that exhibits the most notable correlations, while most other relationships are limited.
 
 \newpage
 ```{r, fig.cap="\\label{fig:figs}PCA plot of every numeric attribute, grouped around the relabeled class attribute time_in_hospital", echo=FALSE}
 knitr::include_graphics('figures/pca-two.pdf')
 ```
 
-While observing figure 6, which is a PCA plot with every numeric attribute and grouped around class attribute time_in_hospital with its two valuations (not fourteen), there is not much we can conclude about the correlation between attributes. The data seems all over the place, and clustering does not give a clear picture of correlation. We can see that attributes are mostly independent, which is essential information for classifying new instances.
+While examining Figure 6, which shows a PCA plot of the numeric attributes colored by the relabeled `time_in_hospital` outcome (two classes), we do not observe clear class separation. The points show substantial overlap, indicating that the numeric variables alone do not strongly distinguish brief from long visits. This suggests that prediction is likely driven by a combination of numeric and categorical attributes rather than by a small set of numeric features. The lack of clear clustering is also consistent with the correlation analysis, where most numeric attributes showed limited redundancy.
 
 \newpage
 ## Final dataset
-After removing whole attributes and some instances and recoding and revaluing others, our final dataset contains 70.438 records and 22 attributes, including the class variable. Which is the result of parting with a total of 23 attributes and `r format(round(as.numeric(101766-70438), 1), nsmall=0, big.mark=".", decimal.mark=",")`, which is a net loss of 30.78%.
+After removing selected attributes and records and performing recoding and transformations, the final dataset contains 70.438 records and 22 attributes, including the class variable. Relative to the initial 101.766 records, this corresponds to the removal of 23 attributes and `r format(round(as.numeric(101766-70438), 1), nsmall=0, big.mark=".", decimal.mark=",")` records, which is a net loss of 30.78%.
 
 \newpage
-## Machine Learning 
-After cleaning the data thoroughly, testing to find the best-predicting classifier could begin. As already stated, this was achieved by using the open-source data mining platform Weka. Weka offers a large set of classifiers to choose from. Not fully understanding which single or group of classifiers would work the best, testing with at least one classifier per group of similar function was decided upon. Based on this reasoning, the classifiers NearestNeighbor (IBk), Random Forest, Naïve Bayes, Simple Logistics, and J48/C4.5 were used. ZeroR and OneR are good classifiers to measure baseline performance and were included as well. We measure performance in the already discussed metrics. The results of all involved classifiers are depicted in table 7.
-
+## Machine learning
+After preprocessing, we evaluated machine learning models to identify a classifier that predicts the relabeled inpatient length-of-stay outcome with high performance. Model training and evaluation were performed using the open-source data mining platform Weka. Because it was not known a priori which model family would perform best, we tested representative classifiers from several categories: Nearest Neighbour (IBk), Random Forest, Naïve Bayes, Simple Logistics, and J48/C4.5. We also included ZeroR and OneR as baseline models. Performance was assessed using the metrics described earlier. The results for all classifiers are shown in Table 7.
 
 ```{r Results relabeling, echo=FALSE, fig.align='center'}
 library(dplyr)
@@ -337,9 +345,11 @@ kbl(label.result, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-We observe table 7, where we can see that the baseline-performance regarding our data is decent and sits at 73.12% and 76.31% accuracy for ZeroR and OneR, respectively. The front-runners are Simple Logistics and Random Forest (78.55% and 78.72% accuracy), with around even-scoring numbers in each metric. Based on these results, both classifiers had their parameters optimized for even better classification.
+Table 7 shows that baseline accuracy is relatively high (ZeroR: 73.12%; OneR: 76.31%). This reflects class imbalance in the relabeled outcome: a classifier can achieve high accuracy by favouring the majority class. For that reason, accuracy must be interpreted alongside class-specific performance metrics (for example, true-positive rate/recall for the long-visit class) and summary measures such as AUC.
 
-Only continuing with the two best-performing classifiers gives the change to explore so-called meta-learners. Meta-learners learn upon the performances of baseline classifiers or better the performance of a classifier and, if goes right, do a better job at predicting in general. The meta-learners of AdaBoost (Boosting), Bagging, Vote, and Stacking were utilized. AdaBoost and Bagging were employed to better the performance of Simple Logistics only, as Random Forest is a meta-learner itself and uses a form of Bagging already. AdaBoost does not seem to better performance of Random Forest from a general perspective, so it was excluded. Vote was performed on every classifier no matter their previous results; Simple Logistics and Random Forest were utilized with optimal parameter settings. Stacking included the two best-performing classifiers to build even a better model potentially. The results of all meta-learners' performances are depicted in table 8.
+The best-performing individual classifiers were Simple Logistics and Random Forest, with accuracies of 78.55% and 78.72%, respectively, and broadly comparable results across the remaining metrics. Based on these outcomes, both models were selected for parameter optimization.
+
+To explore whether performance could be improved beyond single models, we evaluated ensemble meta-learners. Meta-learners combine or refine predictions from one or more base classifiers and may improve generalization. We evaluated AdaBoost (boosting), Bagging, Vote, and Stacking. AdaBoost and Bagging were applied to Simple Logistics only, because Random Forest is itself an ensemble method and already incorporates bagging-related behaviour. Vote was evaluated across all classifiers (using optimized settings for Simple Logistics and Random Forest). Finally, Stacking combined the two best-performing classifiers to test whether their predictions are complementary and can be improved by a meta-learner. The performance of all meta-learners is shown in Table 8.
 
 ```{r Results All-in-one, echo=FALSE, fig.align='center'}
 all.result<- read.csv("datasets/dataset_results_weka/other_meta/all-in-one.csv",
@@ -350,7 +360,15 @@ kbl(all.result, booktabs = T,
   column_spec(1, bold = T)
 ```
 
-We now observe the table 8, visualizing the optimal parameter settings of Simple Logistics (78.62%) and Random Forest (78.77%). Together with the performance of every meta-learner, which shows a clear best-performing classifier. That classifier is Stacking with an accuracy of 79.04% and scores best in every other metric than any other. Stacking utilizes the combining of Random Forest and Simple Logistics to develop an even better model. Bagging and Boosting did not result in better performance for Simple Logistics than the optimal settings did. For Bagging, it stayed the same at 78.62% and worsened slightly regarding Boosting, set at 78.60% accuracy. To get a better overview of the best-performing meta-learner Stacking, the Receiver Operator Characteristic (ROC) curve can be seen in figure 6.
+Table 8 summarizes the optimized versions of Simple Logistics (78.62% accuracy) and Random Forest (78.77% accuracy), alongside the evaluated meta-learners. Stacking achieved the highest overall performance, reaching 79.04% accuracy and the strongest results across the other reported metrics. This suggests that combining Random Forest and Simple Logistics captures complementary signal. In contrast, Bagging did not improve over the optimized Simple Logistics baseline (78.62%), and Boosting resulted in a small decrease (78.60%).
+
+In contrast, Bagging and Boosting did not improve performance over the optimized Simple Logistics model. Bagging matched the optimized baseline (78.62%), while Boosting resulted in a small decrease (78.60%). To further assess the discriminative ability of the final model, the receiver operating characteristic (ROC) curve for the stacking classifier is shown in Figure 6.
+
+## Confusion matrix of the final model
+Because the relabeled outcome remains imbalanced, it is informative to inspect the confusion matrix of the final model rather than relying on accuracy alone. In particular, the model tends to perform better on the majority class (brief visit) than on the minority class (long visit). This is reflected by differences in class-specific true-positive rates, where the brief-visit class typically achieves substantially higher recall than the long-visit class. These results indicate that, while the model is useful for separating brief and long stays, additional improvements would most likely come from increasing sensitivity for long visits (for example, through threshold tuning or imbalance-aware training strategies).
+
+## ROC curve
+To further assess discriminative ability, we examined the receiver operating characteristic (ROC) curve for the stacking model (Figure 6). The ROC curve plots the true-positive rate (TPR) against the false-positive rate (FPR) across decision thresholds. The diagonal line represents random classification. Because the stacking ROC curve lies well above the diagonal, the model shows good discriminative ability.
 
 ```{r Constructing the ROC curve, echo=FALSE}
 roc_data <- read.table("datasets/dataset_results_weka/roc_curve/roc-curve_stacking.arff", 
@@ -380,9 +398,8 @@ plt <- ggplot(data = roc_data,
                     slope = 1, 
                     intercept = 0)) + 
     scale_color_manual(values = colors) +
-    xlab("True Positive Rate") +
-    ylab("False Positive Rate") +
-    #theme_minimal() +
+    xlab("False Positive Rate") +
+    ylab("True Positive Rate") +
     theme_pubr() +
     theme(legend.title = element_blank())
 ```
@@ -391,41 +408,36 @@ plt <- ggplot(data = roc_data,
 print(plt)
 ```
 
-Looking at figure 6, we see the ROC curve of stacking depicted. The red line is the classifier's performance, and the blue line divides the ROC space. We notice that our classifier performs well above the diagonal line, which means the classification is good. The optimum point seems to be around a TPR of 0.65 and an FPR of 0.25. This means that the positive cases that are predicted are actually positive ones, indicating high recall. A high recall/sensitivity is something we strive for. The Area under the ROC, which also one of our chosen metrics, is set at 0.803 and can be used as an accurate indicator. A high ROC Area means good accuracy. Our final model scores descent enough values to be a good model. 
+A practical operating region appears around TPR = 0.65 at FPR = 0.25, which indicates that sensitivity can be increased to approximately 0.65 at the cost of a moderate false-positive rate. The area under the ROC curve (AUC) is 0.803, summarizing separability across all thresholds. Overall, the ROC analysis supports the stacking model as the final model for this binary classification setting.
 
 \newpage
-# Discussion and conclusion
+# Discussion
+Several variables were recoded to improve interpretability and reduce redundancy. A key example is the construction of `icu_related`, which allowed the removal of three administrative ID variables that became redundant after consolidation. Additional recoding could further simplify the dataset. For instance, the primary diagnosis variable is currently grouped into ICD-based categories. Because this project focuses on diabetes-related admissions, an alternative formulation would be to collapse diagnosis into a binary variable (for example, `Diabetes-related` versus `Other`). This would yield a more compact representation that is often well suited to classification. However, collapsing categories also reduces information and may remove clinically meaningful structure that could be valuable for later analyses or for improving model performance.
 
-## Discussion
-There have been a couple of recoding of attributes, for example, the introduction of the icu_related attribute and, as a consequence, the removal of three redundant attributes. Some other attributes still can be recoded, thereby creating a more efficient data structure. An example of such an occurrence is the attributes for primary diagnosis; this attribute is now categorized according to their ICD code. As we are mostly interested in the diabetes category, constructing a new structure with the categories 'Diabetes-related' and 'Others' would create a binary valuation, which is very efficient for machine learning algorithms. The danger of removing so many instances is a great reduction in available information, which could be useful in further analysis down the road.
+The attribute `medical_specialty` was removed due to extensive missingness. Nevertheless, it may contain useful information about care pathways and could potentially help identify where diabetes testing and management protocols differ across specialties. Some of this information might be approximated using admission source variables, but `medical_specialty` provides a richer description with more granular categories. A reasonable alternative would be to retain the attribute and relabel missing values as `Missing`. Future work could revisit this decision and evaluate whether including `medical_specialty` improves predictive performance or supports interpretability, for example by comparing model performance and feature relevance with and without this variable.
 
-The attribute medical_specialty is one that was retired due to its large percentage of missing values. However, it has the potential to give more insight into where exactly diabetes protocols have been lackluster. Some may state that the attribute for admission source could be used for the same intentions. However, medical_specialty gave a lot more valuations and was a great candidate for a more in-depth analysis to improve hospital protocol regarding diabetes testing. Its large part of missing values could have been relabeled to 'Missing' and its information been used. Since the original authors did not continue with the attribute, it was a strong belief to part ways with it.
+Normalization introduced additional considerations. We applied a log2 transformation to reduce scale differences and compress outliers in numeric predictors. Because many numeric values were zero, a direct log2 transform would yield `-Inf`. We therefore added 0.1 prior to transformation. While this approach preserves all observations, it also introduces a small shift that can affect the mapping back to the original scale. Although the offset is small relative to many observed values, it may still influence model performance and should be considered when interpreting results or comparing alternative preprocessing strategies.
 
-The normalization process conducted had some minor implications; we used a log-2 scaling normalization technique where many '-Inf' values were introduced due to zeroes' presence. A temporary solution was to add 0.1 to every instance in numeric attributes. This choice may cause issues with that; not every log-transformed value is representable to its original valuation. Although the added value is relatively low compared to some instance values, it can cause a difference in machine learning outcomes. 
+Even after transformation, some numeric variables still display outliers. Outliers can adversely affect certain learning algorithms, but their impact depends on the model family and how predictors are used. In this study, the transformation reduced the dynamic range substantially, but it remains uncertain whether the remaining outliers meaningfully affected performance. Future work could evaluate alternative approaches (for example, log1p, robust scaling, or winsorization) and compare performance using the same evaluation protocol.
 
-After normalization, we still notice some outliers in numeric attributes. After introducing the log-2 scale, all valuations have an improved range compared to one another, but the amount outliers could still be harmful when coming to the machine learning process. Outliers can give poorer outcome results in a worst-case scenario. In contrast, having some outliers can have no serious implications. The question is if the normalization process we defined was effective enough to get rid of most outliers. 
+A central limitation of the modeling task is class imbalance. The original 14-level target (1–14 days) is strongly positively skewed, which contributed to poor performance across classifiers. Relabeling into two classes (brief versus long visit) substantially improved performance, but the imbalance remains: more than 50,000 brief visits versus fewer than 20,000 long visits. This imbalance can bias the classifier toward predicting brief visits and may reduce sensitivity for long stays. Increasing the number of long-stay examples would likely improve the model’s ability to recognize patterns associated with prolonged hospitalization. Alternatively, imbalance-aware approaches (for example, threshold tuning, class weighting, or resampling) could be explored further with explicit emphasis on improving recall for the long-visit class rather than optimizing accuracy alone.
 
-Our biggest problem may be that the class variable is positively skewed, resulting in a bias against lower durations of inpatient hospital visits. We combatted this by relabeling the class variable from fourteen to just two valuations (brief and longer visits), but the skewness is still there; >50.000 (brief) and <20.000 (long) instances, respectively. This skewness can still affect our model's bias to brief visits, resulting in overfitting, having a model that is not comparable to real hospitalizations. More instances regarding longer visits can improve the model to predict a more *real* duration of a visit.
+A related challenge concerns the choice of cutoff for relabeling. Defining what constitutes a “brief” versus “long” stay is not universal and depends on context. Reported thresholds vary across sources: for example, the NHS uses a definition above ten days \cite{NHS}, another U.S.-based study uses seven days \cite{USA}, and definitions within Europe vary by country (for example, approximately four days in the Netherlands up to around ten days in Russia). \cite{EU} Given this variation, the selected cutoff of five days is inherently somewhat arbitrary. Increasing the cutoff might better align with some definitions, but it would also increase class imbalance and could further bias the model toward the majority class. An alternative would be to introduce more than two classes (for example, short, intermediate, and long stays), although this requires carefully chosen thresholds and may again reduce predictive performance if minority classes become too small.
 
-Another issue is the cut-off regarding the relabeling; when we decided to restructure the class variable, it was challenging to develop a new distribution. What is a brief and a long visit? It was a very arbitrary choice, as no universal definition of a brief and long visit exists. Sources give other definitions. For example, the NHS defines a long stay as over ten days \cite{NHS}, another study as seven days \cite{USA} for the USA, and according to the European Union, a definition of a 'long' visit is different per country, ranging from a low 4 days in The Netherlands to a high of ten in Russia. \cite{EU} All-in-all, it is complicated to precisely determine a measurement for the number of days considered a 'long' and a 'brief' visit. We might want to increase the number of days seen as brief, as most sources give a higher definition of a longer visit. If we decided to do that, we would increase the effects of the skewness of our dataset, making the potential over-fitting even more apparent. What could be done is relabeling to include more classifications like a 'short' and an 'average' visit. Determining the exact days for each class is difficult to determine and might require expertise.
+## Next experiments
+To make progress beyond the current binary formulation, future work should prioritize controlled follow-up experiments that directly test the sensitivity of the model to target definition, class imbalance, and temporal generalizability.
+
+First, a threshold-sensitivity experiment should be performed. The current cutoff of five days can be replaced by alternative thresholds (for example, seven and ten days) to evaluate how model performance changes under definitions that align more closely with reported standards. For each threshold, the same modeling pipeline should be rerun and compared using accuracy, AUC, balanced accuracy, and class-specific recall for the long-stay class. Reporting how these metrics shift across thresholds would clarify whether performance is robust or largely an artefact of the chosen cutoff.
+
+Second, the target can be reformulated as a three-class problem (for example, short, intermediate, and long stay). This would reduce reliance on a single binary split and may better reflect clinical reality, but it also increases the risk of minority classes becoming too small. Performance should therefore be evaluated using metrics appropriate for multi-class imbalance, such as macro-F1 and balanced accuracy, in addition to overall accuracy. Comparing binary versus three-class formulations would help determine whether greater clinical granularity can be achieved without unacceptable performance loss.
+
+Third, model bias toward the majority class should be addressed explicitly. Imbalance-aware strategies such as class weighting, undersampling the majority class, or oversampling the minority class can be evaluated with the specific goal of increasing recall for the long-stay class. Improvements should be reported in terms of long-stay recall and precision (and, if available, PR-AUC), rather than accuracy alone, to ensure that gains reflect better identification of prolonged stays.
+
+Finally, external validation should be used to assess temporal generalizability. A practical approach is to perform a holdout split by year (for example, training on 1998–2006 and testing on 2007–2008) to evaluate performance under potential changes in practice patterns, coding behaviour, or treatment protocols over time. Comparing performance between random cross-validation and a temporal holdout would provide insight into model stability and the risk of performance degradation when deployed in a different period.
 
 \newpage
-## Conclusion and futher work
-The goal of this project was to create an algorithm that can predict whether a new patient is in for a brief (<= 5 days) or long (> 5 days) visit. To achieve this, retrieved data has been cleaned, normalized, and potential relationships visualized. A final model with an accuracy of 79.04% based on meta-learner Stacking that combines performances from both Simple Logistics and Random Forest—both with optimal parameter settings—was achieved. However, whether the model can be a framework for future procedures regarding reducing diabetes-related inpatient hospital visits is debatable. A brief and long visit's classification varies among health institutions and countries, making our model less believable and impactful. Due to the used classification, the model's performance can be a result of over-fitting. In this state, we would not recommend adjusting existing healthcare procedures based on the model's outcomes.
-
-Future work can focus on spelling out a (better) definition of what a 'brief' and a 'long' visit are or exploring more ways to classify new labels such as an 'average' visit so that the model is closer to predicting a *real* hospitalization length. Another aspect to focus on could be obtaining more instances that endured a long visit, according to the definition used in this research. This would result in a less potential situation where the model is over-fitted.
-
-\newpage
-# Project proposal for minor
-The project proposal presented here would be a better match for High-Throughput High-Performance Biocomputing (HTHPB) than for Application Design (AD), as we talk about processing data from potentially millions of patients.
-
-The goal is to create an application using a suitable classifier/algorithm that can determine or predict whether a recently admitted patient is potentially in for a "brief" (<= 5 days) or a "long" (> 5 days) stay. Based on this assessment, the application could indicate why such a classification is given to that particular patient. The indication gives an estimation of how likely a patient is for a particular duration. A patient's care could be based or reassessed on the application's findings, as the application could give factors that contributed the most to the prediction. Those factors could then be assessed and tackled. An example could be a change in medicine. The number of days and the number of labels can be adjusted to someone's liking or expertise.
-
-The implementation does not have to be universal as only hospitals, healthcare institutions, and other research initiatives would be interested in a tool like this. Implementation could be a simple but easy-to-use Desktop app.
-
-The application should be developed for health professionals to determine what care is suitable for diabetic patients. This would not be necessary to have for your everyday Joe. Outcomes need to be analyzed carefully and by someone knowledgeable.
-
-In this case, input would be patient data that is diabetic-related and output estimations of the duration of stay and what factors contributed to that particular assessment.
+## Conclusion
+We developed a model to classify inpatient encounters as brief (<= 5 days) or long (> 5 days) stays. The best-performing approach was a stacking meta-learner combining optimized Simple Logistics and Random Forest, achieving 79.04% accuracy. However, because the cutoff is context-dependent and the data remain imbalanced, these results require further validation before practical use.
 
 \newpage
 # References
@@ -441,9 +453,9 @@ Ashrafian, H; Darzi, A: \textit{Transforming health policy through machine learn
 \bibitem{OrgData}
 Beata Strack, Jonathan P. DeShazo, Chris Gennings, Juan L. Olmo, Sebastian Ventura, Krzysztof J. Cios, and John N. Clore, “Impact of HbA1c Measurement on Hospital Readmission Rates: Analysis of 70,000 Clinical Database Patient Records,” BioMed Research International, vol. 2014, Article ID 781670, 11 pages, 2014. DOI: \url{https://doi.org/10.1155/2014/781670}
 \bibitem{Theme09}
-Dennis Scheper: \textit{Theme 9: Introduction to Data Mining}, \url{https://bitbucket.org/djscheper/thema09/src/master/}, November 2020.
+Jamie Scheper: \textit{Theme 9: Introduction to Data Mining}, \url{https://bitbucket.org/jscscheper/thema09/src/master/}, November 2020.
 \bibitem{Javawrapper}
-Dennis Scheper: \textit{Theme 9: Javawrapper}, \url{https://bitbucket.org/djscheper/javawrapper/src/master/}, November 2020.
+Jamie Scheper: \textit{Theme 9: Javawrapper}, \url{https://bitbucket.org/jscscheper/javawrapper/src/master/}, November 2020.
 \bibitem{ICD-codes}
 Centers for Disease Control and Prevention, National Center for Health Statistics, \textit{ICD-9}, \url{https://www.cdc.gov/nchs/icd/icd9.htm}, November 6, 2015.
 \bibitem{NHS}

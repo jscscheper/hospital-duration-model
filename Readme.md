@@ -1,8 +1,28 @@
-# Theme 09: Introduction to Data Mining
-In this repository, you find an Exploratory Data Analysis (EDA) log on how data regarding predicting the duration of inpatient hospital visits was cleaned, restructured, and visualized to make it ready for machine learning processing. The process behind machine learning can be found in the log as well, where multiple algorithms, parameter settings, and meta-learners were discussed. Finally, we wrapped our findings in a user-friendly command-line environment to classify new instances. This wrapper is Java-based and is located in the corresponding [repository](https://bitbucket.org/djscheper/javawrapper/src/master/).
+# Hospital Duration Prediction Model
+
+![R](https://img.shields.io/badge/R-4.0-276DC3?logo=r)
+![Weka](https://img.shields.io/badge/Weka-3.8-orange)
+![tidyverse](https://img.shields.io/badge/tidyverse-1.3-blue)
+![License](https://img.shields.io/badge/License-Educational-lightgrey)
+
+Exploratory Data Analysis (EDA) and machine learning workflow for predicting the duration of inpatient hospital visits using diabetes patient data.
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Setup](#setup)
+- [Layout](#layout)
+- [Contact](#contact)
+
+---
+
+## Overview
+
 
 # Setup
-Data was retrieved from the [UCI website](https://doi.org/10.1155/2014/781670) and used as test and training data regarding machine learning. We used Rstudio (version 4.0.2) to clean, restructure, and visualize data and findings. For that, we used a couple of external packages/libraries:
+The data were retrieved from the [UCI website](https://doi.org/10.1155/2014/781670) and used as training and test data for machine learning. We used RStudio (version 4.0.2) to clean, restructure, and visualize the data and results. The following external packages/libraries were used:
 
 - [plyr (1.8.6)](https://www.rdocumentation.org/packages/plyr/versions/1.8.6)
 - [dplyr (1.0.2)](https://dplyr.tidyverse.org/)
@@ -18,12 +38,12 @@ Data was retrieved from the [UCI website](https://doi.org/10.1155/2014/781670) a
 - [ggpubr (0.4.0)](http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/)
 
 # Layout
-In the root of the repository, you will find the report and log in both pdf and Rmd format. In the other directories, you will find
+In the root of the repository, you will find the report and log in both PDF and Rmd format. The remaining directories contain:
 
-- `datasets/`: Retrieved datasets from the named source, base datasets consisting of cleaned data with no influence from Weka, and datasets with results from Weka.
-- `figures/`: All figures regarding our findings in pdf format.
-- `misc/`: The original paper, codebook and older versions of the EDA and results and discussion paper.
-- `peer-review/`: Everything related to the peer-review.
+- `datasets/`: Retrieved datasets from the source above, base datasets consisting of cleaned data without Weka-derived modifications, and datasets containing results exported from Weka.
+- `figures/`: All figures related to our findings in PDF format.
+- `misc/`: The original paper, the codebook, and older versions of the EDA and the results/discussion paper.
+- `peer-review/`: Materials related to the peer review.
 
 # Contact
-If any issue or question remains, please contact us at [d.j.scheper@st.hanze.nl](mailto:d.j.scheper@st.hanze.nl)
+If you have any questions or encounter issues, please contact us at [j.s.c.scheper@st.hanze.nl](mailto:j.s.c.scheper@st.hanze.nl).
