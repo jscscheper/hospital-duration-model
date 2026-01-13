@@ -5,45 +5,58 @@
 ![tidyverse](https://img.shields.io/badge/tidyverse-1.3-blue)
 ![License](https://img.shields.io/badge/License-Educational-lightgrey)
 
-Exploratory Data Analysis (EDA) and machine learning workflow for predicting the duration of inpatient hospital visits using diabetes patient data.
-
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Setup](#setup)
-- [Layout](#layout)
-- [Contact](#contact)
+A machine learning project to predict whether a diabetes-related inpatient hospital visit will be brief (≤5 days) or prolonged (>5 days).
 
 ---
 
 ## Overview
 
+Rising healthcare costs, particularly those tied to prolonged hospitalizations, present a significant challenge. This project explores whether machine learning can help predict inpatient length of stay using clinical and administrative data from diabetes-related hospital encounters.
 
-# Setup
-The data were retrieved from the [UCI website](https://doi.org/10.1155/2014/781670) and used as training and test data for machine learning. We used RStudio (version 4.0.2) to clean, restructure, and visualize the data and results. The following external packages/libraries were used:
+The dataset, sourced from the [UCI Machine Learning Repository](https://doi.org/10.1155/2014/781670), contains approximately 101,000 encounters from 130 US hospitals (1998–2008). After extensive preprocessing—including handling missing values, removing near-zero variance features, recoding diagnosis codes, and log-transforming numeric attributes—the final dataset includes 70,438 records and 22 attributes.
 
-- [plyr (1.8.6)](https://www.rdocumentation.org/packages/plyr/versions/1.8.6)
-- [dplyr (1.0.2)](https://dplyr.tidyverse.org/)
-- [tidyr (1.1.2)](https://tidyr.tidyverse.org/)
-- [tidyverse (1.3.0)](https://www.tidyverse.org/)
-- [grid (3.6.2)](https://www.rdocumentation.org/packages/grid/versions/3.6.2) and [gridExtra (2.3)](https://cran.r-project.org/web/packages/gridExtra/index.html)
-- [kableExtra (1.3.1)](https://cran.r-project.org/web/packages/kableExtra/index.html)
-- [hexbin (1.29)](https://www.rdocumentation.org/packages/hexbin/versions/1.29.0/topics/hexbin)
-- [naniar (0.6.0)](https://cran.r-project.org/web/packages/naniar/index.html)
-- [caret (6.0-86)](http://topepo.github.io/caret/index.html)
-- [pals (1.6)](https://cran.r-project.org/web/packages/pals/vignettes/pals_examples.html)
-- [ggplot2 (3.3.2)](https://ggplot2.tidyverse.org/) and [ggbiplot (0.55)](https://www.rdocumentation.org/packages/ggbiplot/versions/0.55)
-- [ggpubr (0.4.0)](http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/)
+Multiple classifiers were evaluated using Weka, including Random Forest, Simple Logistics, Naïve Bayes, and k-Nearest Neighbors. The best-performing model is a Stacking meta-learner combining optimized Random Forest and Simple Logistics, achieving:
 
-# Layout
-In the root of the repository, you will find the report and log in both PDF and Rmd format. The remaining directories contain:
+- Accuracy: 79.04%
+- AUC: 0.803
 
-- `datasets/`: Retrieved datasets from the source above, base datasets consisting of cleaned data without Weka-derived modifications, and datasets containing results exported from Weka.
-- `figures/`: All figures related to our findings in PDF format.
-- `misc/`: The original paper, the codebook, and older versions of the EDA and the results/discussion paper.
-- `peer-review/`: Materials related to the peer review.
+---
 
-# Contact
-If you have any questions or encounter issues, please contact us at [j.s.c.scheper@st.hanze.nl](mailto:j.s.c.scheper@st.hanze.nl).
+## Setup
+
+### Requirements
+- R (version 4.0+) with RStudio
+- Weka (version 3.8) for machine learning
+
+### R Dependencies
+Install the required packages in R:
+
+```r
+install.packages(c("plyr", "dplyr", "tidyr", "tidyverse", "gridExtra", 
+                   "kableExtra", "hexbin", "naniar", "caret", "pals", 
+                   "ggplot2", "ggpubr"))
+```
+
+### Usage
+1. Open `report.Rmd` or `research-log.Rmd` in RStudio
+2. Knit to PDF to reproduce the analysis and figures
+
+---
+
+## Layout
+
+| Directory | Contents |
+|-----------|----------|
+| `datasets/` | Raw data, cleaned base datasets, and Weka result files |
+| `figures/` | All generated figures in PDF format |
+| `misc/` | Original research paper, codebook, and cover image |
+
+**Root files:**
+- `report.Rmd` / `report.pdf` – Final report with methodology and results
+- `research-log.Rmd` / `research-log.pdf` – Detailed EDA and preprocessing log
+
+---
+
+## Contact
+
+For questions or issues, contact [jscscheper@gmail.com](mailto:jscscheper@gmail.com).
